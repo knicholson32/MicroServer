@@ -1,17 +1,18 @@
-// ============================================== //
+// ========================================================== //
 // config.js :: MicroServer
 //
-// Configure settings for the MicroServer in this
-// file. All user-configurable settings can be
-// edited in the 'system' variable below.
-// ============================================== //
+// Configure settings for the MicroServer in this file. All
+// user-configurable settings can be edited in the 'system'
+// variable below.
+// ========================================================== //
 let system = {
-  port: 8081,      //  Port to bind websocket server
-  max_clients: 1,  //  Max number of allowed clients
-  key: 'pa88w0r4', //  Default interface key
-  directory: './files' // Storage location
+  port: 8081,           // Port to bind websocket server
+  max_clients: 2,       // Max number of allowed clients
+  key: 'pa88w0r4',      // Default interface key
+  directory: './files', // Storage location
+  log: './.log'         // Log location
 };
-// ============================================== //
+// ========================================================== //
 
 // Import MD5 Hash
 var md5 = require('md5');
