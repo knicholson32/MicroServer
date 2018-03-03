@@ -182,7 +182,7 @@ function process(ws, message){
               }catch(e){
                 // Catch any errors and report back. Assume the directory does not exist.
                 code = 5;
-                msgOut = "Invalid file access. Server was unable to preform an '"+cmdID+"'. This is probably means a directory along the path does not exist.";
+                msgOut = "Invalid file access. Server was unable to preform a '"+cmdID+"'. This is probably means a directory along the path does not exist.";
                 data = request[1];
                 console.log(cmdID + " error: ");
                 console.log(e);
@@ -252,7 +252,7 @@ function process(ws, message){
               }catch(e){
                 // Catch any errors and report back. Assume the directory does not exist.
                 code = 5;
-                msgOut = "Invalid file access. Server was unable to preform an '"+cmdID+"'. This is probably means a directory along the path does not exist.";
+                msgOut = "Invalid file access. Server was unable to preform a '"+cmdID+"'. This is probably means a directory along the path does not exist.";
                 data = request[2];
                 console.log(cmdID + " error: ");
                 console.log(e);
@@ -287,41 +287,97 @@ function process(ws, message){
             msgOut = "Invalid file access. The target file is beyond the scope of the allowed directory.";
             data = request[2];
           }else{
+            // Generate path parse of the path given by the user
             let path_parse = path.parse(input_path);
             try{
-              fs.mkdirSync(path_parse.dir);
+              // Check if there is a file extension
               if(path_parse.ext != ""){
+                // Create all folders leading to the file
+                fs.mkdirSync(path_parse.dir);
                 try{
-                  if(request[1] != 'none'){
+                  // Check the encoding type
+                  if(request[1] !== undefined && request[1] != 'none'){
+                    // Create an options tree for encoded saving
                     let options = {encoding:request[1]};
+                    // Save the file
                     fs.writeFileSync(input_path, request[3], options);
                   }else{
+                    // Save the vole
                     fs.writeFileSync(input_path, request[3]);
                   }
                 }catch(a){
                   // Catch any errors and report back. Assume the directory does not exist.
                   if(request[1] != 'none'){
-                    msgOut = "Invalid file access. Server was unable to preform an '"+cmdID+"'. An issue may have occured with the specified encoding: '" + request[1] + "'";
+                    msgOut = "Invalid file access. Server was unable to preform a '"+cmdID+"'. An issue may have occured with the specified encoding: '" + request[1] + "'";
                   }else{
-                    msgOut = "Invalid file access. Server was unable to preform an '"+cmdID+"'. An error occured while writing the file.";
+                    msgOut = "Invalid file access. Server was unable to preform a '"+cmdID+"'. An error occured while writing the file.";
                   }
                   code = 5;
                   data = request[2];
                 }
+              }else{
+                // Create the folder
+                fs.mkdirSync(input_path);
               }
             }catch(e){
               // Catch any errors and report back. Assume the directory does not exist.
               code = 5;
-              msgOut = "Invalid file access. Server was unable to preform an '"+cmdID+"'. An error occured creating the directory.";
+              msgOut = "Invalid file access. Server was unable to preform a '"+cmdID+"'. An error occured while creating the directory.";
               data = request[2];
             }
-
           }
           break;
         case "delete":
           // ============================== //
           // Deletes a specified file       //
           // ============================== //
+          // Example: {
+          //    "key":"key_here",
+          //    "request":["delete","./file1.txt"],
+          //    "callback":"callback_here"
+          // }
+          // -> Resolves: {
+          //    "code":1,
+          //    "msg":"200 OK",
+          //    "data":[],
+          //    "callback":"callback_here",
+          //    "cmd":"load"
+          // }
+
+          // Resolve the path
+          input_path = resolvePath(request[1]);
+          // If the path is false, the requested file is outside the scope
+          if(input_path === false){
+            // Error: File is outside the allowed directory
+            code = 5;
+            msgOut = "Invalid file access. The target file is beyond the scope of the allowed directory.";
+            data = request[1];
+          }else{
+            // Generate path parse of the path given by the user
+            let path_parse = path.parse(input_path);
+            // Check if there is a file extension
+            if(path_parse.ext != ""){
+              try{
+                // Delete the file
+                fs.unlinkSync(input_path);
+              }catch(a){
+                // Catch any errors and report back
+                msgOut = "Invalid file access. Server was unable to preform a '"+cmdID+"'. An error occured while deleting the file.";
+                code = 5;
+                data = request[1];
+              }
+            }else{
+              try{
+                // Delete the folder and contained files
+                fs.rmdirSync(input_path);
+              }catch(e){
+                // Catch any errors and report back
+                code = 5;
+                msgOut = "Invalid file access. Server was unable to preform a '"+cmdID+"'. An error occured while deleting the directory.";
+                data = request[1];
+              }
+            }
+          }
           break;
         default:
           code = 2;
