@@ -1,5 +1,5 @@
 # MicroServer
-Socket server for the Micro Editor
+Javascript websocket server for the [Micro Editor](https://github.com/npnicholson/Micro).
 
 
 ## Installing
