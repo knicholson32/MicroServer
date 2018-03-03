@@ -1,0 +1,19 @@
+{
+  "name": "microserver",
+  "version": "1.0.0",
+  "description": "Socket server for the Micro Editor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/knicholson32/MicroServer.git"
+  },
+  "author": "Keenan Nicholson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/knicholson32/MicroServer/issues"
+  },
+  "homepage": "https://github.com/knicholson32/MicroServer#readme"
+}
