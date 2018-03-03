@@ -4,7 +4,7 @@
 // Main entry point for MicroServer. View the repo
 // at https://github.com/knicholson32/MicroServer
 //
-// run with: node host.js -key [key]
+// run with: `node host.js -key [key]`
 // ============================================== //
 
 // Imports using require
@@ -121,6 +121,9 @@ function process(ws, message){
       let input_path;
       switch (cmdID) {
         case "tree":
+          // ============================== //
+          // Produces a recursive file tree //
+          // ============================== //
           // Example: {
           //    "key":"key_here",
           //    "request":["tree","./"],
@@ -142,7 +145,7 @@ function process(ws, message){
           //      }
           //    ],
           //    "callback":"callback_here",
-          //    "cmd":"load"}
+          //    "cmd":"load"
           // }
 
           // Resolve the path
@@ -188,9 +191,12 @@ function process(ws, message){
           }
           break;
         case "load":
+          // ============================== //
+          // Loads a specified file         //
+          // ============================== //
           // Example: {
           //    "key":"key_here",
-          //    "request":["load","file.txt","utf-8"],
+          //    "request":["load","utf-8","file.txt"],
           //    "callback":"callback_here"
           // }
           // -> Resolves: {
@@ -203,35 +209,35 @@ function process(ws, message){
           //      "data":"This is filler text"
           //    },
           //    "callback":"callback_here",
-          //    "cmd":"load"}
+          //    "cmd":"load"
           // }
 
           // Resolve the path
-          input_path = resolvePath(request[1]);
+          input_path = resolvePath(request[2]);
           // If the path is false, the requested file is outside the scope
           if(input_path === false){
             // Error: File is outside the allowed directory
             code = 5;
             msgOut = "Invalid file access. The requested file is beyond the scope of the allowed directory.";
-            data = request[1];
+            data = request[2];
           }else{
             // Ensure that the operated path is a file
             if(path.parse(input_path).ext == ""){
               // Error: Command argument is a directory, not a file
               code = 5;
               msgOut = "Invalid file access. A '"+cmdID+"' command can only be operated on a file, while a directory was provided.";
-              data = request[1];
+              data = request[2];
             }else{
               // Try to access files
               try{
                 // Init some variables
                 var contents;
-                var encoding = 'none';
+                var encoding = request[1];
                 // Encoding specified
-                if(request.length > 2){
+                if(encoding != 'none'){
                   // Read with encoding
-                  contents = fs.readFileSync(input_path, request[2]);
-                  encoding = request[2];
+                  contents = fs.readFileSync(input_path, encoding);
+                  encoding = request[1];
                 }else{
                   // Read without encoding - buffer
                   contents = fs.readFileSync(input_path);
@@ -247,12 +253,75 @@ function process(ws, message){
                 // Catch any errors and report back. Assume the directory does not exist.
                 code = 5;
                 msgOut = "Invalid file access. Server was unable to preform an '"+cmdID+"'. This is probably means a directory along the path does not exist.";
-                data = request[1];
+                data = request[2];
                 console.log(cmdID + " error: ");
                 console.log(e);
+                console.log(results);
               }
             }
           }
+          break;
+        case "save":
+          // ============================== //
+          // Saves a specified file         //
+          // ============================== //
+          // Example: {
+          //    "key":"key_here",
+          //    "request":["save","utf-8","./file1.txt","file update!"],
+          //    "callback":"callback_here"
+          // }
+          // -> Resolves: {
+          //    "code":1,
+          //    "msg":"200 OK",
+          //    "data":[],
+          //    "callback":"callback_here",
+          //    "cmd":"load"
+          // }
+
+          // Resolve the path
+          input_path = resolvePath(request[2]);
+          // If the path is false, the requested file is outside the scope
+          if(input_path === false){
+            // Error: File is outside the allowed directory
+            code = 5;
+            msgOut = "Invalid file access. The target file is beyond the scope of the allowed directory.";
+            data = request[2];
+          }else{
+            let path_parse = path.parse(input_path);
+            try{
+              fs.mkdirSync(path_parse.dir);
+              if(path_parse.ext != ""){
+                try{
+                  if(request[1] != 'none'){
+                    let options = {encoding:request[1]};
+                    fs.writeFileSync(input_path, request[3], options);
+                  }else{
+                    fs.writeFileSync(input_path, request[3]);
+                  }
+                }catch(a){
+                  // Catch any errors and report back. Assume the directory does not exist.
+                  if(request[1] != 'none'){
+                    msgOut = "Invalid file access. Server was unable to preform an '"+cmdID+"'. An issue may have occured with the specified encoding: '" + request[1] + "'";
+                  }else{
+                    msgOut = "Invalid file access. Server was unable to preform an '"+cmdID+"'. An error occured while writing the file.";
+                  }
+                  code = 5;
+                  data = request[2];
+                }
+              }
+            }catch(e){
+              // Catch any errors and report back. Assume the directory does not exist.
+              code = 5;
+              msgOut = "Invalid file access. Server was unable to preform an '"+cmdID+"'. An error occured creating the directory.";
+              data = request[2];
+            }
+
+          }
+          break;
+        case "delete":
+          // ============================== //
+          // Deletes a specified file       //
+          // ============================== //
           break;
         default:
           code = 2;
@@ -262,6 +331,7 @@ function process(ws, message){
     }
   }
 
+  // Form the return message
   let return_msg = {
     code: code,
     msg: msgOut,
@@ -269,6 +339,7 @@ function process(ws, message){
     callback: callback,
     cmd: cmdID
   };
+  // Send the return message
   ws.send(JSON.stringify(return_msg));
 }
 
