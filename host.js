@@ -121,6 +121,30 @@ function process(ws, message){
       let input_path;
       switch (cmdID) {
         case "tree":
+          // Example: {
+          //    "key":"key_here",
+          //    "request":["tree","./"],
+          //    "callback":"callback_here"
+          // }
+          // -> Resolves: {
+          //    "code":1,
+          //    "msg":"200 OK",
+          //    "data":[
+          //      {
+          //        "type":"file",
+          //        "path":"file1.txt",
+          //        "ext":".txt"}
+          //      },
+          //      {
+          //        "type":"dir",
+          //        "path":"tmp",
+          //        "ext":""}
+          //      }
+          //    ],
+          //    "callback":"callback_here",
+          //    "cmd":"load"}
+          // }
+
           // Resolve the path
           input_path = resolvePath(request[1]);
           // If the path is false, the requested file is outside the scope
@@ -164,6 +188,24 @@ function process(ws, message){
           }
           break;
         case "load":
+          // Example: {
+          //    "key":"key_here",
+          //    "request":["load","file.txt","utf-8"],
+          //    "callback":"callback_here"
+          // }
+          // -> Resolves: {
+          //    "code":1,
+          //    "msg":"200 OK",
+          //    "data":{
+          //      "name":"file1.txt",
+          //      "size":19,
+          //      "enc":"utf-8",
+          //      "data":"This is filler text"
+          //    },
+          //    "callback":"callback_here",
+          //    "cmd":"load"}
+          // }
+
           // Resolve the path
           input_path = resolvePath(request[1]);
           // If the path is false, the requested file is outside the scope
