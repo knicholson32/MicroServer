@@ -36,10 +36,11 @@ var client_count = 0;
 wss.on('connection', function connection(ws) {
   // Process any messages sent from the client
   ws.on('message', function incoming(message) {
-    process(message);
+    process(ws, message);
   });
   // Remove the client from the count on close
   ws.on('close', function close(e) {
+    console.log("Closed Connection");
     client_count --;
   });
   // Process what to do on open
@@ -67,19 +68,49 @@ wss.on('connection', function connection(ws) {
     // Send the response message
     ws.send(JSON.stringify(msg));
     // Report connection
-    console.log('Open');
+    console.log('Opened Connection');
     // Add to the client count
     client_count ++;
   }
 });
 
 // Report details
-console.log("Websocket active on port: " + config.system.port + ".");
+console.log("Websocket active on port: " + config.system.port);
+console.log("Interface Key: '" + config.system.key + "'");
 console.log("Allowing a max of [" + config.system.max_clients + "] clients.");
-console.log("Awaiting connections...");
+console.log("Awaiting connections...\n");
 
 // Process a message from the client
-function process(message){
-  let msg = JSON.parse(message);
-  console.log(msg);
+function process(ws, message){
+  // Decode incoming message
+  let results = JSON.parse(message);
+  // Set the default return code (successful process)
+  let code = 1;
+  // Set an empty message as the default message
+  let msgOut = "";
+  let cmdID = "none";
+  // Declare a variable for data
+  let data = [];
+  // Declare a variable for the callback ID
+  let callback = "";
+
+  // Check that the input was a valid json message
+  if (results === undefined || results.key === undefined || results.request === undefined || !Array.isArray(results.request) || results.callback === undefined){
+    // If not, error
+    code = 3;
+    msgOut = "Malformed message.";
+    data = [message,'{"key":"123123KEY","request":["request_cmd"],"callback":"callback_here"}'];
+    cmdID = "err";
+  }else{
+    
+  }
+
+  let return_msg = {
+    code: code,
+    msg: msgOut,
+    data: data,
+    callback: callback,
+    cmd: cmdID
+  };
+  ws.send(JSON.stringify(return_msg));
 }
