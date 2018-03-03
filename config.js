@@ -6,11 +6,15 @@
 // edited in the 'system' variable below.
 // ============================================== //
 let system = {
-  port: 8081,     //  Port to bind websocket server
-  max_clients: 1, //  Max number of allowed clients
-  key: 'pa88w0r4' //  Default interface key
+  port: 8081,      //  Port to bind websocket server
+  max_clients: 1,  //  Max number of allowed clients
+  key: 'pa88w0r4', //  Default interface key
+  directory: './files' // Storage location
 };
 // ============================================== //
+
+// Import MD5 Hash
+var md5 = require('md5');
 
 // Process user input key
 // Loop through file args
@@ -27,10 +31,12 @@ process.argv.forEach(function (val, index, array) {
 function getID () {
   return '_' + Math.random().toString(36).substr(2, 9);
 };
+let session_id = getID();
 
 // Module exports
 module.exports = {
-  id: getID(),
+  id: session_id,
+  md5_key: md5(session_id + '-' + system.key),
   createID: getID,
   system: system
 };
