@@ -296,13 +296,16 @@ function process(ws, message){
                 fs.mkdirSync(path_parse.dir);
                 try{
                   // Check the encoding type
-                  if(request[1] !== undefined && request[1] != 'none'){
+                  if(request[1] !== undefined && request[1] != 'none' && request[1] != 'append'){
                     // Create an options tree for encoded saving
                     let options = {encoding:request[1]};
                     // Save the file
                     fs.writeFileSync(input_path, request[3], options);
+                  }else if(request[1] == 'append'){
+                    // Save the file
+                    fs.appendFileSync(input_path, request[3]);
                   }else{
-                    // Save the vole
+                    // Save the file
                     fs.writeFileSync(input_path, request[3]);
                   }
                 }catch(a){
@@ -314,6 +317,7 @@ function process(ws, message){
                   }
                   code = 5;
                   data = request[2];
+                  console.log(a);
                 }
               }else{
                 // Create the folder
