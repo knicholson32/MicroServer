@@ -30,7 +30,7 @@ process.argv.forEach(function (val, index, array) {
 
 // General function for generating a unique id
 function getID () {
-  return '_' + Math.random().toString(36).substr(2, 9);
+  return Math.random().toString(36).substr(2, 9);
 };
 let session_id = getID();
 

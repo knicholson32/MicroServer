@@ -46,6 +46,8 @@ wss.on('connection', function connection(ws) {
     client_count --;
     console.log("Closed Connection: [" + (config.system.max_clients - client_count) + "] client slots available");
   });
+  // Add error handle
+  ws.on('error', function err(e){log(e);});
   // Process what to do on open
   // Add to the client count
   client_count ++;
@@ -109,7 +111,7 @@ function process(ws, message){
     callback = results.callback;
 
     // Check that the key is valid
-    if (key != config.md5_key && false){
+    if (key != config.md5_key){
       code = 4;
       msgOut = "Invalid handshake key.";
       console.log("Invalid Key: " + key + "\n");
@@ -174,6 +176,11 @@ function process(ws, message){
                   if(filename && parse.base.charAt(0) == '.'){
                     return;
                   }
+
+                  // TODO: Remove this once there is support for it in Micro
+                  if(!filename)
+                    return;
+
                   // Push the results to be sent back
                   data.push({type:type, path:relative, ext:parse.ext});
                 });
@@ -305,7 +312,7 @@ function process(ws, message){
                     // Save the file
                     fs.writeFileSync(input_path, request[3]);
                   }
-                  wss.broadcast(['update',input_path]);
+                  wss.broadcast(input_path, request[3], 'update');
                 }catch(a){
                   // Catch any errors and report back. Assume the directory does not exist.
                   if(request[1] != 'none'){
@@ -321,7 +328,7 @@ function process(ws, message){
               }else{
                 // Create the folder
                 fs.mkdirSync(input_path);
-                wss.broadcast(['update',input_path]);
+                wss.broadcast(input_path, '','update');
               }
             }catch(e){
               // Catch any errors and report back. Assume the directory does not exist.
@@ -366,7 +373,7 @@ function process(ws, message){
               try{
                 // Delete the file
                 fs.unlinkSync(input_path);
-                wss.broadcast(['delete',input_path]);
+                wss.broadcast(input_path, '', 'delete');
               }catch(a){
                 // Catch any errors and report back
                 msgOut = "Invalid file access. Server was unable to preform a '"+cmdID+"'. An error occured while deleting the file.";
@@ -379,7 +386,7 @@ function process(ws, message){
               try{
                 // Delete the folder and contained files
                 fs.rmdirSync(input_path);
-                wss.broadcast(['delete',input_path]);
+                wss.broadcast(input_path, '', 'delete');
               }catch(e){
                 // Catch any errors and report back
                 code = 5;
@@ -432,7 +439,8 @@ function process(ws, message){
               try{
                 // Move the file / folder
                 fs.renameSync(input_path1, input_path2);
-                wss.broadcast(['move',input_path1, input_path2]);
+                //wss.broadcast(['move',input_path1, input_path2]);
+                wss.broadcast(input_path1, input_path2, 'move');
               }catch(a){
                 // Catch any errors and report back
                 msgOut = "Invalid file access. Server was unable to preform a '"+cmdID+"'. An error occured while moving the file. Ensure correct paths.";
@@ -485,7 +493,8 @@ function process(ws, message){
               try{
                 // Copy the file / folder
                 fs.copyFileSync(input_path1, input_path2);
-                wss.broadcast(['copy',input_path1, input_path2]);
+                //wss.broadcast(['copy',input_path1, input_path2]);
+                wss.broadcast(input_path1, input_path2, 'copy');
               }catch(a){
                 // Catch any errors and report back
                 msgOut = "Invalid file access. Server was unable to preform a '"+cmdID+"'. An error occured while copying the file. Ensure correct paths.";
@@ -515,20 +524,21 @@ function process(ws, message){
   };
   // Send the return message
   ws.send(JSON.stringify(return_msg));
+  log("<- [" + code + "] ("+ cmdID + ") '" + msgOut + "'");
 }
 
 // Broadcast function to alert all connections that there has been a file change
 // of some sort.
-wss.broadcast = function broadcast(data) {
+wss.broadcast = function broadcast(path, data, type, ws) {
   // Loop through all clients
   wss.clients.forEach(function each(client) {
     // Check if the client is active
-    if (client.readyState === WebSocket.OPEN) {
+    if (client.readyState === WebSocket.OPEN){// && client !== ws) {
       // Generate a message
       let return_msg = {
         code: 7,
         msg: "directory/file update",
-        data: data,
+        data: [path, data, type],
         callback: "file_tree_refresh",
         cmd: "file_tree_refresh"
       };
@@ -540,15 +550,29 @@ wss.broadcast = function broadcast(data) {
 };
 
 // Override logging to print to console and log file
-let c = console.log;
+var old_c = console.log;
 console.log = function(e){
   log(e);
-  c(e);
+  old_c(e);
 }
 
 // Log file print
-function log(e){
-  fs.appendFileSync(config.system.log, '' + e + '\n');
+function log(e, date = true){
+  if(date === false){
+    try{
+      fs.appendFileSync(config.system.log, '' + e + '\n');
+    }catch(e){
+      old_c(e);
+    }
+  }else{
+    let d = new Date();
+    dateString = d.toTimeString().split(' ')[0];
+    try{
+      fs.appendFileSync(config.system.log, dateString + '  ' + e + '\n');
+    }catch(e){
+      old_c(e);
+    }
+  }
 }
 
 // Resolve a path relative to the file directory. If a file path is resolved that
@@ -573,12 +597,12 @@ function resolvePath(input_path){
 
 // Init log
 
-log('\n==============================================');
-log(Date());
-log('==============================================\n');
+log('\n==============================================',false);
+log(Date(),false);
+log('==============================================\n',false);
 
 // Report details
 console.log("Websocket active on port: " + config.system.port);
 console.log("Interface Hash: '" + config.md5_key + "'");
 console.log("Allowing a max of [" + config.system.max_clients + "] clients.");
-console.log("Awaiting connections...\n");
+console.log("Awaiting connections...");
