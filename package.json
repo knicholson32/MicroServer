@@ -2,7 +2,7 @@
   "name": "microserver",
   "version": "1.0.0",
   "description": "Socket server for the Micro Editor",
-  "main": "index.js",
+  "main": "host.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,5 +15,9 @@
   "bugs": {
     "url": "https://github.com/knicholson32/MicroServer/issues"
   },
-  "homepage": "https://github.com/knicholson32/MicroServer#readme"
+  "homepage": "https://github.com/knicholson32/MicroServer#readme",
+  "dependencies": {
+    "file-system": "^2.2.2",
+    "ws": "^4.1.0"
+  }
 }
