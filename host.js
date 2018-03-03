@@ -379,6 +379,110 @@ function process(ws, message){
             }
           }
           break;
+        case "move":
+          // ============================== //
+          // Moves a specified file/dir     //
+          // ============================== //
+          // Example: {
+          //    "key":"key_here",
+          //    "request":["rename","./file1.txt", "./tmp/file2.txt"],
+          //    "callback":"callback_here"
+          // }
+          // -> Resolves: {
+          //    "code":1,
+          //    "msg":"200 OK",
+          //    "data":[],
+          //    "callback":"callback_here",
+          //    "cmd":"load"
+          // }
+
+          // Resolve the paths
+          input_path1 = resolvePath(request[1]);
+          input_path2 = resolvePath(request[2]);
+          // If the path is false, the requested file is outside the scope
+          if(input_path1 === false || input_path2 === false){
+            // Error: File is outside the allowed directory
+            code = 5;
+            msgOut = "Invalid file access. The target file is beyond the scope of the allowed directory.";
+            data = [request[1], request[2]];
+          }else{
+            // Get extensions for both file paths
+            let ext1 = path.parse(input_path1).ext;
+            let ext2 = path.parse(input_path2).ext;
+            if((ext1 == "" && ext2 != "") || (ext1 != "" && ext2 == "")){
+              // Catch any errors and report back
+              if(ext1 == ""){
+                msgOut = "Invalid target. Server was unable to preform a '"+cmdID+"'. A directory cannot be moved to a file.";
+              }else{
+                msgOut = "Invalid target. Server was unable to preform a '"+cmdID+"'. A file cannot be moved to a directory.";
+              }
+              code = 5;
+              data = [request[1], request[2]];
+            }else{
+              try{
+                // Move the file / folder
+                fs.renameSync(input_path1, input_path2);
+              }catch(a){
+                // Catch any errors and report back
+                msgOut = "Invalid file access. Server was unable to preform a '"+cmdID+"'. An error occured while moving the file. Ensure correct paths.";
+                code = 5;
+                data = request[1];
+                console.log(a);
+              }
+            }
+          }
+          break;
+        case "copy":
+          // ============================== //
+          // Copies a specified file        //
+          // ============================== //
+          // Example: {
+          //    "key":"key_here",
+          //    "request":["copy","./file1.txt", "./tmp/file2.txt"],
+          //    "callback":"callback_here"
+          // }
+          // -> Resolves: {
+          //    "code":1,
+          //    "msg":"200 OK",
+          //    "data":[],
+          //    "callback":"callback_here",
+          //    "cmd":"load"
+          // }
+
+          // TODO: Support copying directories as well. (#1)
+
+          // Resolve the paths
+          input_path1 = resolvePath(request[1]);
+          input_path2 = resolvePath(request[2]);
+          // If the path is false, the requested file is outside the scope
+          if(input_path1 === false || input_path2 === false){
+            // Error: File is outside the allowed directory
+            code = 5;
+            msgOut = "Invalid file access. The target file is beyond the scope of the allowed directory.";
+            data = [request[1], request[2]];
+          }else{
+            // Get extensions for both file paths
+            let ext1 = path.parse(input_path1).ext;
+            let ext2 = path.parse(input_path2).ext;
+            if(ext1 == "" ||  ext2 == ""){
+              // Catch any errors and report back
+              msgOut = "Invalid target. Server was unable to preform a '"+cmdID+"'. A directory cannot be copied.";
+              code = 5;
+              data = [request[1], request[2]];
+            }else{
+              try{
+                // Copy the file / folder
+                fs.copyFileSync(input_path1, input_path2);
+              }catch(a){
+                // Catch any errors and report back
+                msgOut = "Invalid file access. Server was unable to preform a '"+cmdID+"'. An error occured while copying the file. Ensure correct paths.";
+                code = 5;
+                data = request[1];
+                console.log(a);
+              }
+            }
+          }
+          break;
         default:
           code = 2;
           msgOut = "Unknown command: " + cmdID;
