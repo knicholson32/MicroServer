@@ -595,14 +595,15 @@ function resolvePath(input_path){
 
 // ============================================== //
 
-// Init log
-
+// Init log file
 log('\n==============================================',false);
 log(Date(),false);
 log('==============================================\n',false);
+
 
 // Report details
 console.log("Websocket active on port: " + config.system.port);
 console.log("Interface Hash: '" + config.md5_key + "'");
 console.log("Allowing a max of [" + config.system.max_clients + "] clients.");
+console.log("Type ctrl-C to exit.");
 console.log("Awaiting connections...");
