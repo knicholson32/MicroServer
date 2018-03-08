@@ -177,10 +177,6 @@ function process(ws, message){
                     return;
                   }
 
-                  // TODO: Remove this once there is support for it in Micro
-                  if(!filename)
-                    return;
-
                   // Push the results to be sent back
                   data.push({type:type, path:relative, ext:parse.ext});
                 });
