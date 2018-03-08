@@ -20,9 +20,20 @@ var fs = require('file-system');
 const path = require('path');
 
 // Create the websocket server and bind it to the configured port
-const wss = new WebSocket.Server({
-  port: config.system.port
-});
+var wss;
+if(config.system.ssl === true){
+  const https = require('https');
+  const server = https.createServer({
+    port: config.system.port,
+    cert: config.system.cert,
+    key: config.system.key
+  });
+  wss = new WebSocket.Server({ server });
+}else{
+  wss = new WebSocket.Server({
+    port: config.system.port
+  });
+}
 
 // Set the client count to 0
 var client_count = 0;

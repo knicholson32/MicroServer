@@ -10,7 +10,10 @@ let system = {
   max_clients: 2,       // Max number of allowed clients
   key: 'pa88w0r4',      // Default interface key
   directory: './files', // Storage location
-  log: './.log'         // Log location
+  log: './.log',        // Log location
+  ssl: false,           // Use SSL to encrypt websocket
+  cert: './certificate.pem',  // Path to SSL certificate
+  key: './key.pem'            // Path to SSL key
 };
 // ========================================================== //
 
