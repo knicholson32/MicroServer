@@ -1,6 +1,7 @@
 # MicroServer
 Javascript websocket server for the [Micro Editor](https://github.com/npnicholson/Micro).
 
+[View the Wiki](https://github.com/knicholson32/MicroServer/wiki) for detailed usage and configuration information.
 
 ## Installing
 This server requires [npm](https://www.npmjs.com/) (and by extension, [node.js](https://nodejs.org/en/)). Ensure these are installed:
