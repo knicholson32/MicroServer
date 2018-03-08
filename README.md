@@ -1,5 +1,5 @@
 # MicroServer
-Javascript websocket server for the [Micro Editor](https://github.com/npnicholson/Micro).
+JavaScript WebSocket file server for the [Micro Editor](https://github.com/npnicholson/Micro) and other online systems.
 
 [View the Wiki](https://github.com/knicholson32/MicroServer/wiki) for detailed usage and configuration information.
 
