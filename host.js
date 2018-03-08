@@ -4,6 +4,9 @@
 // Main entry point for MicroServer. View the repo
 // at https://github.com/knicholson32/MicroServer
 //
+// View command list at the Wiki:
+// https://github.com/knicholson32/MicroServer/wiki
+//
 // run with: `node host.js -key [key]`
 // ============================================== //
 
@@ -32,7 +35,7 @@ var client_count = 0;
  * 4: Invalid key
  * 5: Error
  * 6: Key set
- * 7: File/Direcory Update
+ * 7: File/Directory Update
  */
 
 // Define actions for a new connection
@@ -136,12 +139,12 @@ function process(ws, message){
           //      {
           //        "type":"file",
           //        "path":"file1.txt",
-          //        "ext":".txt"}
+          //        "ext":".txt"
           //      },
           //      {
           //        "type":"dir",
           //        "path":"tmp",
-          //        "ext":""}
+          //        "ext":""
           //      }
           //    ],
           //    "callback":"callback_here",
@@ -275,7 +278,7 @@ function process(ws, message){
           //    "msg":"200 OK",
           //    "data":[],
           //    "callback":"callback_here",
-          //    "cmd":"load"
+          //    "cmd":"save"
           // }
 
           // Resolve the path
