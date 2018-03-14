@@ -177,8 +177,8 @@ function MicroServer(args) {
                   code = 5;
                   msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. This is probably means a directory along the path does not exist.";
                   data = request[1];
-                  this.log('-> ' + message);
-                  this.log(e);
+                  log('-> ' + message);
+                  log(e);
                 }
               }
             }
@@ -247,8 +247,8 @@ function MicroServer(args) {
                   code = 5;
                   msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. This is probably means a directory along the path does not exist.";
                   data = request[2];
-                  this.log('-> ' + message);
-                  this.log(e);
+                  log('-> ' + message);
+                  log(e);
                 }
               }
             }
@@ -269,6 +269,8 @@ function MicroServer(args) {
             //    "callback":"callback_here",
             //    "cmd":"save"
             // }
+
+            // TODO: Document append
 
             // Resolve the path
             input_path = resolvePath(request[2]);
@@ -295,14 +297,18 @@ function MicroServer(args) {
                       };
                       // Save the file
                       fs.writeFileSync(input_path, request[3], options);
+                      wss.broadcast(input_path, request[3], 'update');
                     } else if (request[1] == 'append') {
                       // Save the file
                       fs.appendFileSync(input_path, request[3]);
+                      let new_file = fs.readFileSync(input_path, 'utf-8');
+                      wss.broadcast(input_path, new_file, 'update');
                     } else {
                       // Save the file
                       fs.writeFileSync(input_path, request[3]);
+                      wss.broadcast(input_path, request[3], 'update');
                     }
-                    wss.broadcast(input_path, request[3], 'update');
+
                   } catch (a) {
                     // Catch any errors and report back. Assume the directory does not exist.
                     if (request[1] != 'none') {
@@ -312,8 +318,8 @@ function MicroServer(args) {
                     }
                     code = 5;
                     data = request[2];
-                    this.log('-> ' + message);
-                    this.log(a);
+                    log('-> ' + message);
+                    log(a);
                   }
                 } else {
                   // Create the folder
@@ -325,8 +331,8 @@ function MicroServer(args) {
                 code = 5;
                 msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while creating the directory.";
                 data = request[2];
-                this.log('-> ' + message);
-                this.log(e);
+                log('-> ' + message);
+                log(e);
               }
             }
             break;
@@ -419,25 +425,24 @@ function MicroServer(args) {
               if ((ext1 == "" && ext2 != "") || (ext1 != "" && ext2 == "")) {
                 // Report back this error
                 if (ext1 == "") {
-                  msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A directory cannot be moved to a file.";
+                  msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A directory cannot be converted to a file.";
                 } else {
-                  msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A file cannot be moved to a directory.";
+                  msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A file cannot be converted to a directory.";
                 }
                 code = 5;
                 data = [request[1], request[2]];
               } else {
                 try {
-                  // Move the file / folder
+                  fs.mkdirSync(path.parse(input_path2).dir);
                   fs.renameSync(input_path1, input_path2);
-                  //wss.broadcast(['move',input_path1, input_path2]);
                   wss.broadcast(input_path1, input_path2, 'move');
                 } catch (a) {
                   // Catch any errors and report back
                   msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while moving the file. Ensure correct paths.";
                   code = 5;
                   data = request[1];
-                  this.log('-> ' + message);
-                  this.log(a);
+                  log('-> ' + message);
+                  log(a);
                 }
               }
             }
@@ -474,24 +479,32 @@ function MicroServer(args) {
               // Get extensions for both file paths
               let ext1 = path.parse(input_path1).ext;
               let ext2 = path.parse(input_path2).ext;
-              if (ext1 == "" || ext2 == "") {
-                // Catch any errors and report back
-                msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A directory cannot be copied.";
+              if ((ext1 == "" && ext2 != "") || (ext1 != "" && ext2 == "")) {
+                // Report back this error
+                if (ext1 == "") {
+                  msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A directory cannot be converted to a file.";
+                } else {
+                  msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A file cannot be converted to a directory.";
+                }
                 code = 5;
                 data = [request[1], request[2]];
               } else {
                 try {
-                  // Copy the file / folder
-                  fs.copyFileSync(input_path1, input_path2);
-                  //wss.broadcast(['copy',input_path1, input_path2]);
+                  if (ext1 == "") {
+                    // Copy the folder
+                    fs.copySync(input_path1, input_path2);
+                  } else {
+                    // Copy the file
+                    fs.copyFileSync(input_path1, input_path2);
+                  }
                   wss.broadcast(input_path1, input_path2, 'copy');
                 } catch (a) {
                   // Catch any errors and report back
                   msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while copying the file. Ensure correct paths.";
                   code = 5;
                   data = request[1];
-                  this.log('-> ' + message);
-                  this.log(a);
+                  log('-> ' + message);
+                  log(a);
                 }
               }
             }
@@ -615,19 +628,19 @@ function MicroServer(args) {
           client.send(JSON.stringify(return_msg));
         }
       });
-      this.log('Broadcast file/dir update:' + data);
+      log('Broadcast file/dir update: ' + data);
     };
 
     // Init log file
-    this.log('\n==============================================', false);
-    this.log(Date(), false);
-    this.log('==============================================\n', false);
+    log('\n==============================================', false);
+    log(Date(), false);
+    log('==============================================\n', false);
 
 
     // Report details
-    console.log("Websocket active on port: " + this.system.port);
-    console.log("Interface Hash: '" + this.md5_key + "'");
-    console.log("Allowing a max of [" + this.system.max_clients + "] clients.");
+    console.log("Websocket active on port: " + system.port);
+    console.log("Interface Hash: '" + system.md5_key + "'");
+    console.log("Allowing a max of [" + system.max_clients + "] clients.");
     console.log("Type ctrl-C to exit.");
     console.log("Awaiting connections...");
 
@@ -671,7 +684,7 @@ function MicroServer(args) {
   }
 
   // Log file print
-  this.log = function(e, date = true) {
+  log = function(e, date = true) {
     if (date === false) {
       try {
         fs.appendFileSync(system.log, '' + e + '\n');
@@ -688,7 +701,7 @@ function MicroServer(args) {
       }
     }
   }
-  var log = this.log;
+  var log = log;
   var system = this.system;
 }
 
