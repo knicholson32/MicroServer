@@ -1,3 +1,6 @@
+[![CircleCI branch](https://img.shields.io/circleci/project/github/knicholson32/MicroServer/master.svg)](https://circleci.com/gh/knicholson32/MicroServer)
+
+
 # MicroServer
 JavaScript WebSocket file server for the [Micro Editor](https://github.com/npnicholson/Micro) and other online systems.
 
