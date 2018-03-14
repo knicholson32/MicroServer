@@ -7,17 +7,12 @@ const path = require('path');
 // Import MD5 Hash
 var md5 = require('md5');
 
-const {
-  id,
-  md5_key,
-  createID,
-  system
-} = require('../config');
 
 
 let ip_addr = (require('ip').address());
-console.log("Connecting: " + ip_addr + ":" + system.port);
-const ws_local = new WebSocket('ws://' + (require('ip').address()) + ':' + system.port);
+console.log("Connecting: " + ip_addr + ":" + 8081);
+
+const ws_local = new WebSocket('ws://' + (require('ip').address()) + ':' + 8081);
 ws_local.on('open', function open() {
   //ws_local.send('close');
 });
