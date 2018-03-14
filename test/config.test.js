@@ -7,7 +7,7 @@ const {
   md5_key,
   createID,
   system
-} = require('./config');
+} = require('../config');
 
 test('ID Tests', () => {
   expect(createID).toBeDefined();
