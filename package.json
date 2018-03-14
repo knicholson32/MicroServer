@@ -5,7 +5,7 @@
   "main": "host.js",
   "scripts": {
     "test": "jest --verbose",
-    "start": "node host.js -key test_key -test",
+    "start_test": "node ./test/test-host.js",
     "clean_log": "rm -r .log; touch .log",
     "generate_test_files": "./test/generate_test_files.sh"
   },
