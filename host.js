@@ -42,7 +42,7 @@ if (config.system.ssl === true) {
 if (config.system.testing === true) {
   setTimeout(function() {
     wss.close();
-    console.log("Test Timeout - Close");
+    console.log("Test Timeout -> Close");
   }, 10000);
 }
 
@@ -113,7 +113,18 @@ function process(ws, message) {
   try {
     results = JSON.parse(message);
   } catch (e) {
-    results = {};
+    // Check if we are in testing mode
+    if (config.system.testing === true) {
+      // If so and the message is 'close', close the server
+      if (message == 'close') {
+        wss.close();
+        console.log("External Close Command");
+        return;
+      }
+    } else {
+      // Declare the message as an empty message.
+      results = {};
+    }
   }
   // Set the default return code (successful process)
   var code = 1;
@@ -169,13 +180,13 @@ function process(ws, message) {
           //        "type":"file",
           //        "path":"file1.txt",
           //        "ext":".txt",
-          //        "md5":"abc123"
+          //        "hash":"abc123"
           //      },
           //      {
           //        "type":"dir",
           //        "path":"tmp",
           //        "ext":"",
-          //        "md5":"123hashabc"
+          //        "hash":"123hashabc"
           //      }
           //    ],
           //    "callback":"callback_here",
@@ -215,7 +226,7 @@ function process(ws, message) {
                     type: type,
                     path: relative,
                     ext: parse.ext,
-                    hash: md5(path.parse(input_path).base)
+                    hash: md5(relative)
                   });
                 });
               } catch (e) {

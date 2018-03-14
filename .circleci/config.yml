@@ -12,6 +12,7 @@ jobs:
     steps:
       - checkout
       - run: npm install
+      - run: npm run generate_test_files
       - run:
           name: starting websocket server
           command: sh -c "npm start" # & PID=$! && echo "PID is $PID and PWD is $PWD"

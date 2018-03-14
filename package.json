@@ -5,7 +5,9 @@
   "main": "host.js",
   "scripts": {
     "test": "jest",
-    "start": "node host.js -key test_key -test"
+    "start": "node host.js -key test_key -test",
+    "clean_files": "rm -rf files",
+    "generate_test_files": "./generate_test_files.sh"
   },
   "repository": {
     "type": "git",
