@@ -4,7 +4,7 @@
   "description": "Socket server for the Micro Editor",
   "main": "host.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -20,5 +20,8 @@
     "file-system": "^2.2.2",
     "md5": "^2.2.1",
     "ws": "^4.1.0"
+  },
+  "devDependencies": {
+    "jest": "^22.4.2"
   }
 }
