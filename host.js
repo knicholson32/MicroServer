@@ -28,7 +28,7 @@ if (config.system.ssl === true) {
   const server = https.createServer({
     port: config.system.port,
     cert: config.system.cert,
-    key: config.system.key
+    key: config.system.key_ssl
   });
   wss = new WebSocket.Server({
     server
@@ -616,6 +616,14 @@ function resolvePath(input_path) {
     return false;
   }
 }
+
+// Module exports
+module.exports = {
+  process: process,
+  resolvePath: resolvePath,
+  log: log,
+  wss: wss
+};
 
 // ============================================== //
 

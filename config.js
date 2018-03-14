@@ -13,7 +13,7 @@ let system = {
   log: './.log', // Log location
   ssl: false, // Use SSL to encrypt websocket
   cert: './certificate.pem', // Path to SSL certificate
-  key: './key.pem' // Path to SSL key
+  key_ssl: './key.pem' // Path to SSL key
 };
 // ========================================================== //
 
