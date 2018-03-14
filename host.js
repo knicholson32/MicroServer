@@ -123,19 +123,20 @@ function MicroServer(args) {
             //        "type":"file",
             //        "path":"file1.txt",
             //        "ext":".txt",
-            //        "hash":"abc123"
+            //        "hash":"abc123",
+            //        "fp":"file_fingerprint"
             //      },
             //      {
             //        "type":"dir",
             //        "path":"tmp",
             //        "ext":"",
-            //        "hash":"123hashabc"
+            //        "hash":"123hashabc",
+            //        "fp":""
             //      }
             //    ],
             //    "callback":"callback_here",
             //    "cmd":"load"
             // }
-            // TODO: Match the wiki to the hash changes above.
             // Resolve the path
             input_path = resolvePath(request[1]);
             // If the path is false, the requested file is outside the scope
@@ -174,7 +175,7 @@ function MicroServer(args) {
                       path: relative,
                       ext: parse.ext,
                       hash: md5(relative),
-                      fingerprint: fp
+                      fp: fp
                     });
                   });
                 } catch (e) {
@@ -274,8 +275,6 @@ function MicroServer(args) {
             //    "callback":"callback_here",
             //    "cmd":"save"
             // }
-
-            // TODO: Document append
 
             // Resolve the path
             input_path = resolvePath(request[2]);
@@ -469,8 +468,6 @@ function MicroServer(args) {
             //    "cmd":"load"
             // }
 
-            // TODO: Support copying directories as well. (#1)
-
             // Resolve the paths
             input_path1 = resolvePath(request[1]);
             input_path2 = resolvePath(request[2]);
@@ -630,7 +627,6 @@ function MicroServer(args) {
             cmd: "file_tree_refresh",
             fp: fp
           };
-          // TODO: Add fingerprint documentation
           // Send the return message
           client.send(JSON.stringify(return_msg));
         }

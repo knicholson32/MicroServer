@@ -90,21 +90,21 @@ test('Check <Tree> Command', done => {
     expect(dat.path).toEqual('dir2/file4.txt');
     expect(dat.ext).toEqual('.txt');
     expect(dat.hash).toEqual(md5('dir2/file4.txt'));
-    expect(dat.fingerprint).toEqual(md5('This is file 4\n'));
+    expect(dat.fp).toEqual(md5('This is file 4\n'));
     // Check that file 8 is correct
     dat = msg.data[8];
     expect(dat.type).toEqual('dir');
     expect(dat.path).toEqual('dir3');
     expect(dat.ext).toEqual('');
     expect(dat.hash).toEqual(md5('dir3'));
-    expect(dat.fingerprint).toEqual('');
+    expect(dat.fp).toEqual('');
     // Check that file 7 is correct
     dat = msg.data[7];
     expect(dat.type).toEqual('file');
     expect(dat.path).toEqual('dir3/file6.txt');
     expect(dat.ext).toEqual('.txt');
     expect(dat.hash).toEqual(md5('dir3/file6.txt'));
-    expect(dat.fingerprint).toEqual(md5('This is file 6\n'));
+    expect(dat.fp).toEqual(md5('This is file 6\n'));
     done();
   };
   ws_local.send(JSON.stringify({
