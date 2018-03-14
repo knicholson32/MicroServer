@@ -39,16 +39,16 @@ test('Resolve Path Tests', () => {
 
 test('Process WS Tests', done => {
   expect(process).toBeDefined();
-  setTimeout(function() {
-    const ws_local = new WebSocket('ws://localhost:' + system.port);
-    ws_local.on('open', function open() {
-      ws_local.send('something');
-    });
-    ws_local.on('message', function incoming(data) {
-      console.log(data);
-      done();
-    });
-  }, 100);
+  //setTimeout(function() {
+  const ws_local = new WebSocket('ws://localhost:' + system.port);
+  ws_local.on('open', function open() {
+    ws_local.send('something');
+  });
+  ws_local.on('message', function incoming(data) {
+    console.log(data);
+    done();
+  });
+  //}, 100);
 });
 
 test('Close WSS', () => {
