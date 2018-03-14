@@ -12,5 +12,5 @@ jobs:
     steps:
       - checkout
       - run: npm install
-      - run: run: sh -c "npm start" & PID=$! && echo "PID is $PID and PWD is $PWD"
+      - run: sh -c "npm start" & PID=$! && echo "PID is $PID and PWD is $PWD"
       - run: npm test && sleep 2
