@@ -4,9 +4,9 @@
   "description": "Socket server for the Micro Editor",
   "main": "host.js",
   "scripts": {
-    "test": "jest",
+    "test": "jest --verbose",
     "start": "node host.js -key test_key -test",
-    "clean_files": "rm -rf files",
+    "clean_log": "rm -r .log; touch .log",
     "generate_test_files": "./test/generate_test_files.sh"
   },
   "repository": {

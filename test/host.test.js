@@ -28,13 +28,14 @@ ws_local.on('message', function incoming(data) {
 
 function finish() {
   ws_local.send('close');
+  var log_data = fs.readFileSync('.log', 'utf8');
+  console.log(log_data);
 }
 
 // Test the key pairing system
 var server_key;
 test('Key pairing Test', done => {
   direct = function(data) {
-    console.log("Key_gen Test: " + data);
     let msg = JSON.parse(data);
     expect(msg.code).toBeDefined();
     expect(msg.code).toEqual(6);
@@ -43,7 +44,6 @@ test('Key pairing Test', done => {
     expect(msg.data).toBeDefined();
     expect(msg.data).not.toBeNull();
     server_key = md5(msg.data + '-test_key');
-    console.log("Key: " + server_key);
     done();
   }
 });
@@ -81,7 +81,6 @@ test('Test <Tree>', done => {
     expect(dat.path).toEqual('dir3');
     expect(dat.ext).toEqual('');
     expect(dat.hash).toEqual(md5('dir3'));
-
     // All done
     finish();
     done();
