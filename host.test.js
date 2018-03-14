@@ -48,6 +48,9 @@ test('Process WS Tests', done => {
     console.log(data);
     done();
   });
+  setTimeout(function() {
+    done();
+  }, 500);
   //}, 100);
 });
 
