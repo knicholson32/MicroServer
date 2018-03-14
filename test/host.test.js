@@ -165,7 +165,7 @@ test('Check <save> Command', done => {
       expect(msg.data).toBeDefined();
       expect(msg.data).not.toBeNull();
       expect(msg.data.length).toEqual(3);
-      expect(msg.data[0]).toEqual('files/dir1/file1.js');
+      expect(msg.data[0]).toEqual('dir1/file1.js');
       expect(msg.data[1]).toEqual('This is file 1 (javascript) write');
       expect(msg.data[2]).toEqual('update');
       expect(msg.fp).toBeDefined();
@@ -217,7 +217,7 @@ test('Check <save> Command -> Append', done => {
       expect(msg.data).toBeDefined();
       expect(msg.data).not.toBeNull();
       expect(msg.data.length).toEqual(3);
-      expect(msg.data[0]).toEqual('files/dir1/file1.js');
+      expect(msg.data[0]).toEqual('dir1/file1.js');
       expect(msg.data[1]).toEqual('This is file 1 (javascript) write - EDITED!');
       expect(msg.data[2]).toEqual('update');
       expect(msg.fp).toBeDefined();
@@ -268,7 +268,7 @@ test('Check <save> Command -> New File', done => {
       expect(msg.data).toBeDefined();
       expect(msg.data).not.toBeNull();
       expect(msg.data.length).toEqual(3);
-      expect(msg.data[0]).toEqual('files/dir1/test_dir/new_file.js');
+      expect(msg.data[0]).toEqual('dir1/test_dir/new_file.js');
       expect(msg.data[1]).toEqual('This is my new file!');
       expect(msg.data[2]).toEqual('update');
       expect(msg.fp).toBeDefined();
@@ -354,7 +354,7 @@ test('Check <delete> Command', done => {
       expect(msg.data).toBeDefined();
       expect(msg.data).not.toBeNull();
       expect(msg.data.length).toEqual(3);
-      expect(msg.data[0]).toEqual('files/file2.txt');
+      expect(msg.data[0]).toEqual('file2.txt');
       expect(msg.data[1]).toEqual('');
       expect(msg.data[2]).toEqual('delete');
       expect(msg.fp).toBeDefined();
@@ -405,8 +405,8 @@ test('Check <move> Command', done => {
       expect(msg.data).toBeDefined();
       expect(msg.data).not.toBeNull();
       expect(msg.data.length).toEqual(3);
-      expect(msg.data[0]).toEqual('files/dir1/test_dir/new_file.js');
-      expect(msg.data[1]).toEqual('files/dir1/test_dir_move/new_file_move.js');
+      expect(msg.data[0]).toEqual('dir1/test_dir/new_file.js');
+      expect(msg.data[1]).toEqual('dir1/test_dir_move/new_file_move.js');
       expect(msg.data[2]).toEqual('move');
       expect(msg.fp).toBeDefined();
       expect(msg.fp).toEqual('');
@@ -456,8 +456,8 @@ test('Check <move> Command - Directory', done => {
       expect(msg.data).toBeDefined();
       expect(msg.data).not.toBeNull();
       expect(msg.data.length).toEqual(3);
-      expect(msg.data[0]).toEqual('files/dir1/dir4');
-      expect(msg.data[1]).toEqual('files/dir1/dir4_moved');
+      expect(msg.data[0]).toEqual('dir1/dir4');
+      expect(msg.data[1]).toEqual('dir1/dir4_moved');
       expect(msg.data[2]).toEqual('move');
       expect(msg.fp).toBeDefined();
       expect(msg.fp).toEqual('');
@@ -573,8 +573,8 @@ test('Check <move> Command', done => {
       expect(msg.data).toBeDefined();
       expect(msg.data).not.toBeNull();
       expect(msg.data.length).toEqual(3);
-      expect(msg.data[0]).toEqual('files/dir1/test_dir_move/new_file_move.js');
-      expect(msg.data[1]).toEqual('files/dir1_copy/new_file_copy.js');
+      expect(msg.data[0]).toEqual('dir1/test_dir_move/new_file_move.js');
+      expect(msg.data[1]).toEqual('dir1_copy/new_file_copy.js');
       expect(msg.data[2]).toEqual('copy');
       expect(msg.fp).toBeDefined();
       expect(msg.fp).toEqual('');
@@ -624,8 +624,8 @@ test('Check <move> Command - Directory', done => {
       expect(msg.data).toBeDefined();
       expect(msg.data).not.toBeNull();
       expect(msg.data.length).toEqual(3);
-      expect(msg.data[0]).toEqual('files/dir1');
-      expect(msg.data[1]).toEqual('files/dir1_folder_copy');
+      expect(msg.data[0]).toEqual('dir1');
+      expect(msg.data[1]).toEqual('dir1_folder_copy');
       expect(msg.data[2]).toEqual('copy');
       expect(msg.fp).toBeDefined();
       expect(msg.fp).toEqual('');

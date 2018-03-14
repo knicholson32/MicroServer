@@ -301,16 +301,16 @@ function MicroServer(args) {
                       };
                       // Save the file
                       fs.writeFileSync(input_path, request[3], options);
-                      wss.broadcast(input_path, request[3], 'update', md5(request[3]));
+                      wss.broadcast(cleanHeadDir(input_path), request[3], 'update', md5(request[3]));
                     } else if (request[1] == 'append') {
                       // Save the file
                       fs.appendFileSync(input_path, request[3]);
                       let new_file = fs.readFileSync(input_path, 'utf-8');
-                      wss.broadcast(input_path, new_file, 'update', md5(new_file));
+                      wss.broadcast(cleanHeadDir(input_path), new_file, 'update', md5(new_file));
                     } else {
                       // Save the file
                       fs.writeFileSync(input_path, request[3]);
-                      wss.broadcast(input_path, request[3], 'update', md5(request[3]));
+                      wss.broadcast(cleanHeadDir(input_path), request[3], 'update', md5(request[3]));
                     }
 
                   } catch (a) {
@@ -328,7 +328,7 @@ function MicroServer(args) {
                 } else {
                   // Create the folder
                   fs.mkdirSync(input_path);
-                  wss.broadcast(input_path, '', 'update', '');
+                  wss.broadcast(cleanHeadDir(input_path), '', 'update', '');
                 }
               } catch (e) {
                 // Catch any errors and report back. Assume the directory does not exist.
@@ -373,7 +373,7 @@ function MicroServer(args) {
                 try {
                   // Delete the file
                   fs.unlinkSync(input_path);
-                  wss.broadcast(input_path, '', 'delete', '');
+                  wss.broadcast(cleanHeadDir(input_path), '', 'delete', '');
                 } catch (a) {
                   // Catch any errors and report back
                   msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while deleting the file.";
@@ -386,7 +386,7 @@ function MicroServer(args) {
                 try {
                   // Delete the folder and contained files
                   fs.rmdirSync(input_path);
-                  wss.broadcast(input_path, '', 'delete', '');
+                  wss.broadcast(cleanHeadDir(input_path), '', 'delete', '');
                 } catch (e) {
                   // Catch any errors and report back
                   code = 5;
@@ -439,7 +439,7 @@ function MicroServer(args) {
                 try {
                   fs.mkdirSync(path.parse(input_path2).dir);
                   fs.renameSync(input_path1, input_path2);
-                  wss.broadcast(input_path1, input_path2, 'move', '');
+                  wss.broadcast(cleanHeadDir(input_path1), cleanHeadDir(input_path2), 'move', '');
                 } catch (a) {
                   // Catch any errors and report back
                   msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while moving the file. Ensure correct paths.";
@@ -499,7 +499,7 @@ function MicroServer(args) {
                     // Copy the file
                     fs.copyFileSync(input_path1, input_path2);
                   }
-                  wss.broadcast(input_path1, input_path2, 'copy', '');
+                  wss.broadcast(cleanHeadDir(input_path1), cleanHeadDir(input_path2), 'copy', '');
                 } catch (a) {
                   // Catch any errors and report back
                   msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while copying the file. Ensure correct paths.";
@@ -724,6 +724,12 @@ function MicroServer(args) {
     } else {
       return false;
     }
+  }
+
+  var headDir = 'files';
+
+  function cleanHeadDir(input_path) {
+    return path.relative(headDir, input_path);
   }
 
   // Override logging to print to console and log file
