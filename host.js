@@ -39,6 +39,13 @@ if (config.system.ssl === true) {
   });
 }
 
+if (config.system.testing === true) {
+  setTimeout(function() {
+    wss.close();
+    console.log("Test Timeout - Close");
+  }, 10000);
+}
+
 // Set the client count to 0
 var client_count = 0;
 
@@ -102,7 +109,12 @@ wss.on('connection', function connection(ws) {
 // Process a message from the client
 function process(ws, message) {
   // Decode incoming message
-  var results = JSON.parse(message);
+  var results;
+  try {
+    results = JSON.parse(message);
+  } catch (e) {
+    results = {};
+  }
   // Set the default return code (successful process)
   var code = 1;
   // Set an empty message as the default message

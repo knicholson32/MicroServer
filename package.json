@@ -4,7 +4,8 @@
   "description": "Socket server for the Micro Editor",
   "main": "host.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "start": "node host.js -key test_key -test"
   },
   "repository": {
     "type": "git",

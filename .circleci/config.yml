@@ -12,4 +12,8 @@ jobs:
     steps:
       - checkout
       - run: npm install
-      - run: npm test
+      - run: mkdir logs
+      - store_artifacts:
+          path: logs
+      - run: run: sh -c "npm start" & PID=$! && echo "PID is $PID and PWD is $PWD"
+      - run: npm test && sleep 2

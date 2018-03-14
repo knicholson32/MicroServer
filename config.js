@@ -31,6 +31,18 @@ process.argv.forEach(function(val, index, array) {
   }
 });
 
+// Loop through file args
+system.testing = false;
+process.argv.forEach(function(val, index, array) {
+  // If there is a key set command, keep note of the next index
+  if (val == "-test") {
+    // Set the new key and return
+    system.testing = true;
+    system.ssl = false;
+    return;
+  }
+});
+
 // General function for generating a unique id
 function getID() {
   return Math.random().toString(36).substr(2, 9);
