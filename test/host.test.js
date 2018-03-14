@@ -229,6 +229,52 @@ test('Check <save> Command -> Append', done => {
   }));
 });
 
+// Test the save function
+test('Check <save> Command -> New File', done => {
+  let received_save_confirm = false;
+  let received_file_update = false;
+  direct = function(data) {
+    // Parse Data
+    let msg = JSON.parse(data);
+    // Check that the correct status code and message is present
+    expect(msg.code).toBeDefined();
+    if (msg.code === 7) {
+      expect(msg.msg).toBeDefined();
+      expect(msg.msg).toEqual("directory/file update");
+      expect(msg.callback).toBeDefined();
+      expect(msg.callback).toEqual('file_tree_refresh');
+      expect(msg.cmd).toBeDefined();
+      expect(msg.cmd).toEqual('file_tree_refresh');
+      expect(msg.data).toBeDefined();
+      expect(msg.data).not.toBeNull();
+      expect(msg.data.length).toEqual(3);
+      expect(msg.data[0]).toEqual('files/dir1/test_dir/new_file.js');
+      expect(msg.data[1]).toEqual('This is my new file!');
+      expect(msg.data[2]).toEqual('update');
+      received_file_update = true;
+    } else if (msg.code === 1) {
+      expect(msg.msg).toBeDefined();
+      expect(msg.msg).toEqual("200 OK");
+      expect(msg.callback).toBeDefined();
+      expect(msg.callback).toEqual('callback_save_new_file');
+      expect(msg.cmd).toBeDefined();
+      expect(msg.cmd).toEqual('save');
+      expect(msg.data).toBeDefined();
+      expect(msg.data).toEqual([]);
+      received_save_confirm = true;
+    } else {
+      throw new Error("[save] Unexpected return code: " + msg.code);
+    }
+    if (received_file_update === true && received_save_confirm === true)
+      done();
+  };
+  ws_local.send(JSON.stringify({
+    "key": server_key,
+    "request": ["save", "utf-8", "dir1/test_dir/new_file.js", "This is my new file!"],
+    "callback": "callback_save_new_file"
+  }));
+});
+
 // Test the load function
 test('Check <load> Command Part 2', done => {
   direct = function(data) {
@@ -301,6 +347,250 @@ test('Check <delete> Command', done => {
     "key": server_key,
     "request": ["delete", "./file2.txt"],
     "callback": "callback_delete"
+  }));
+});
+
+// Test the move function
+test('Check <move> Command', done => {
+  let received_del_confirm = false;
+  let received_file_update = false;
+  direct = function(data) {
+    // Parse Data
+    let msg = JSON.parse(data);
+    // Check that the correct status code and message is present
+    expect(msg.code).toBeDefined();
+    if (msg.code === 7) {
+      expect(msg.msg).toBeDefined();
+      expect(msg.msg).toEqual("directory/file update");
+      expect(msg.callback).toBeDefined();
+      expect(msg.callback).toEqual('file_tree_refresh');
+      expect(msg.cmd).toBeDefined();
+      expect(msg.cmd).toEqual('file_tree_refresh');
+      expect(msg.data).toBeDefined();
+      expect(msg.data).not.toBeNull();
+      expect(msg.data.length).toEqual(3);
+      expect(msg.data[0]).toEqual('files/dir1/test_dir/new_file.js');
+      expect(msg.data[1]).toEqual('files/dir1/test_dir_move/new_file_move.js');
+      expect(msg.data[2]).toEqual('move');
+      received_file_update = true;
+    } else if (msg.code === 1) {
+      expect(msg.msg).toBeDefined();
+      expect(msg.msg).toEqual("200 OK");
+      expect(msg.callback).toBeDefined();
+      expect(msg.callback).toEqual('callback_move');
+      expect(msg.cmd).toBeDefined();
+      expect(msg.cmd).toEqual('move');
+      expect(msg.data).toBeDefined();
+      expect(msg.data).toEqual([]);
+      received_del_confirm = true;
+    } else {
+      throw new Error("[save] Unexpected return code: " + msg.code);
+    }
+    if (received_del_confirm === true && received_file_update === true)
+      done();
+  };
+  ws_local.send(JSON.stringify({
+    "key": server_key,
+    "request": ["move", "dir1/test_dir/new_file.js", "dir1/test_dir_move/new_file_move.js"],
+    "callback": "callback_move"
+  }));
+});
+
+// Test the move function
+test('Check <move> Command - Directory', done => {
+  let received_del_confirm = false;
+  let received_file_update = false;
+  direct = function(data) {
+    // Parse Data
+    let msg = JSON.parse(data);
+    // Check that the correct status code and message is present
+    expect(msg.code).toBeDefined();
+    if (msg.code === 7) {
+      expect(msg.msg).toBeDefined();
+      expect(msg.msg).toEqual("directory/file update");
+      expect(msg.callback).toBeDefined();
+      expect(msg.callback).toEqual('file_tree_refresh');
+      expect(msg.cmd).toBeDefined();
+      expect(msg.cmd).toEqual('file_tree_refresh');
+      expect(msg.data).toBeDefined();
+      expect(msg.data).not.toBeNull();
+      expect(msg.data.length).toEqual(3);
+      expect(msg.data[0]).toEqual('files/dir1/dir4');
+      expect(msg.data[1]).toEqual('files/dir1/dir4_moved');
+      expect(msg.data[2]).toEqual('move');
+      received_file_update = true;
+    } else if (msg.code === 1) {
+      expect(msg.msg).toBeDefined();
+      expect(msg.msg).toEqual("200 OK");
+      expect(msg.callback).toBeDefined();
+      expect(msg.callback).toEqual('callback_move');
+      expect(msg.cmd).toBeDefined();
+      expect(msg.cmd).toEqual('move');
+      expect(msg.data).toBeDefined();
+      expect(msg.data).toEqual([]);
+      received_del_confirm = true;
+    } else {
+      throw new Error("[save] Unexpected return code: " + msg.code);
+    }
+    if (received_del_confirm === true && received_file_update === true)
+      done();
+  };
+  ws_local.send(JSON.stringify({
+    "key": server_key,
+    "request": ["move", "dir1/dir4", "dir1/dir4_moved"],
+    "callback": "callback_move"
+  }));
+});
+
+// Test the move function with tree
+test('Check <move> Command -> tree Part 1', done => {
+  direct = function(data) {
+    // Parse Data
+    let msg = JSON.parse(data);
+    // Check that the correct status code and message is present
+    expect(msg.code).toBeDefined();
+    expect(msg.code).toEqual(1);
+    expect(msg.msg).toBeDefined();
+    expect(msg.msg).toEqual("200 OK");
+    expect(msg.callback).toBeDefined();
+    expect(msg.callback).toEqual('callback_tree');
+    expect(msg.cmd).toBeDefined();
+    expect(msg.cmd).toEqual('tree');
+    expect(msg.data).toBeDefined();
+    expect(msg.data).not.toBeNull();
+    // Check that there are 0 elements
+    expect(msg.data.length).toEqual(0);
+    expect(msg.data).toEqual([]);
+    done();
+  };
+  ws_local.send(JSON.stringify({
+    "key": server_key,
+    "request": ["tree", "dir1/test_dir"],
+    "callback": "callback_tree"
+  }));
+});
+
+// Test the move function with tree
+test('Check <move> Command -> tree Part 2', done => {
+  direct = function(data) {
+    // Parse Data
+    let msg = JSON.parse(data);
+    // Check that the correct status code and message is present
+    expect(msg.code).toBeDefined();
+    expect(msg.code).toEqual(1);
+    expect(msg.msg).toBeDefined();
+    expect(msg.msg).toEqual("200 OK");
+    expect(msg.callback).toBeDefined();
+    expect(msg.callback).toEqual('callback_tree');
+    expect(msg.cmd).toBeDefined();
+    expect(msg.cmd).toEqual('tree');
+    expect(msg.data).toBeDefined();
+    expect(msg.data).not.toBeNull();
+    // Check that there are 0 elements
+    expect(msg.data.length).toEqual(1);
+    let dat = msg.data[0];
+    expect(dat.type).toEqual('file');
+    expect(dat.path).toEqual('new_file_move.js');
+    expect(dat.ext).toEqual('.js');
+    expect(dat.hash).toEqual(md5('new_file_move.js'));
+    done();
+  };
+  ws_local.send(JSON.stringify({
+    "key": server_key,
+    "request": ["tree", "dir1/test_dir_move"],
+    "callback": "callback_tree"
+  }));
+});
+
+// Test the move function
+test('Check <move> Command', done => {
+  let received_del_confirm = false;
+  let received_file_update = false;
+  direct = function(data) {
+    // Parse Data
+    let msg = JSON.parse(data);
+    // Check that the correct status code and message is present
+    expect(msg.code).toBeDefined();
+    if (msg.code === 7) {
+      expect(msg.msg).toBeDefined();
+      expect(msg.msg).toEqual("directory/file update");
+      expect(msg.callback).toBeDefined();
+      expect(msg.callback).toEqual('file_tree_refresh');
+      expect(msg.cmd).toBeDefined();
+      expect(msg.cmd).toEqual('file_tree_refresh');
+      expect(msg.data).toBeDefined();
+      expect(msg.data).not.toBeNull();
+      expect(msg.data.length).toEqual(3);
+      expect(msg.data[0]).toEqual('files/dir1/test_dir_move/new_file_move.js');
+      expect(msg.data[1]).toEqual('files/dir1_copy/new_file_copy.js');
+      expect(msg.data[2]).toEqual('copy');
+      received_file_update = true;
+    } else if (msg.code === 1) {
+      expect(msg.msg).toBeDefined();
+      expect(msg.msg).toEqual("200 OK");
+      expect(msg.callback).toBeDefined();
+      expect(msg.callback).toEqual('callback_copy');
+      expect(msg.cmd).toBeDefined();
+      expect(msg.cmd).toEqual('copy');
+      expect(msg.data).toBeDefined();
+      expect(msg.data).toEqual([]);
+      received_del_confirm = true;
+    } else {
+      throw new Error("[save] Unexpected return code: " + msg.code);
+    }
+    if (received_del_confirm === true && received_file_update === true)
+      done();
+  };
+  ws_local.send(JSON.stringify({
+    "key": server_key,
+    "request": ["copy", "dir1/test_dir_move/new_file_move.js", "dir1_copy/new_file_copy.js"],
+    "callback": "callback_copy"
+  }));
+});
+
+// Test the move function
+test('Check <move> Command - Directory', done => {
+  let received_del_confirm = false;
+  let received_file_update = false;
+  direct = function(data) {
+    // Parse Data
+    let msg = JSON.parse(data);
+    // Check that the correct status code and message is present
+    expect(msg.code).toBeDefined();
+    if (msg.code === 7) {
+      expect(msg.msg).toBeDefined();
+      expect(msg.msg).toEqual("directory/file update");
+      expect(msg.callback).toBeDefined();
+      expect(msg.callback).toEqual('file_tree_refresh');
+      expect(msg.cmd).toBeDefined();
+      expect(msg.cmd).toEqual('file_tree_refresh');
+      expect(msg.data).toBeDefined();
+      expect(msg.data).not.toBeNull();
+      expect(msg.data.length).toEqual(3);
+      expect(msg.data[0]).toEqual('files/dir1');
+      expect(msg.data[1]).toEqual('files/dir1_folder_copy');
+      expect(msg.data[2]).toEqual('copy');
+      received_file_update = true;
+    } else if (msg.code === 1) {
+      expect(msg.msg).toBeDefined();
+      expect(msg.msg).toEqual("200 OK");
+      expect(msg.callback).toBeDefined();
+      expect(msg.callback).toEqual('callback_copy');
+      expect(msg.cmd).toBeDefined();
+      expect(msg.cmd).toEqual('copy');
+      expect(msg.data).toBeDefined();
+      expect(msg.data).toEqual([]);
+      received_del_confirm = true;
+    } else {
+      throw new Error("[save] Unexpected return code: " + msg.code);
+    }
+    if (received_del_confirm === true && received_file_update === true)
+      done();
+  };
+  ws_local.send(JSON.stringify({
+    "key": server_key,
+    "request": ["copy", "dir1", "dir1_folder_copy"],
+    "callback": "callback_copy"
   }));
 });
 

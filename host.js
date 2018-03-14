@@ -425,17 +425,16 @@ function MicroServer(args) {
               if ((ext1 == "" && ext2 != "") || (ext1 != "" && ext2 == "")) {
                 // Report back this error
                 if (ext1 == "") {
-                  msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A directory cannot be moved to a file.";
+                  msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A directory cannot be converted to a file.";
                 } else {
-                  msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A file cannot be moved to a directory.";
+                  msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A file cannot be converted to a directory.";
                 }
                 code = 5;
                 data = [request[1], request[2]];
               } else {
                 try {
-                  // Move the file / folder
+                  fs.mkdirSync(path.parse(input_path2).dir);
                   fs.renameSync(input_path1, input_path2);
-                  //wss.broadcast(['move',input_path1, input_path2]);
                   wss.broadcast(input_path1, input_path2, 'move');
                 } catch (a) {
                   // Catch any errors and report back
@@ -480,16 +479,24 @@ function MicroServer(args) {
               // Get extensions for both file paths
               let ext1 = path.parse(input_path1).ext;
               let ext2 = path.parse(input_path2).ext;
-              if (ext1 == "" || ext2 == "") {
-                // Catch any errors and report back
-                msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A directory cannot be copied.";
+              if ((ext1 == "" && ext2 != "") || (ext1 != "" && ext2 == "")) {
+                // Report back this error
+                if (ext1 == "") {
+                  msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A directory cannot be converted to a file.";
+                } else {
+                  msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A file cannot be converted to a directory.";
+                }
                 code = 5;
                 data = [request[1], request[2]];
               } else {
                 try {
-                  // Copy the file / folder
-                  fs.copyFileSync(input_path1, input_path2);
-                  //wss.broadcast(['copy',input_path1, input_path2]);
+                  if (ext1 == "") {
+                    // Copy the folder
+                    fs.copySync(input_path1, input_path2);
+                  } else {
+                    // Copy the file
+                    fs.copyFileSync(input_path1, input_path2);
+                  }
                   wss.broadcast(input_path1, input_path2, 'copy');
                 } catch (a) {
                   // Catch any errors and report back
