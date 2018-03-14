@@ -7,7 +7,7 @@
     "test": "jest",
     "start": "node host.js -key test_key -test",
     "clean_files": "rm -rf files",
-    "generate_test_files": "./generate_test_files.sh"
+    "generate_test_files": "./test/generate_test_files.sh",
   },
   "repository": {
     "type": "git",
@@ -27,5 +27,9 @@
     "@ionic/app-scripts": "^3.1.8",
     "ip": "^1.1.5",
     "jest": "^22.4.2"
+  },
+  "jest": {
+    "testRegex": "./test/.*test.js$",
+    "rootDir": "."
   }
 }

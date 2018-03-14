@@ -12,40 +12,8 @@ const {
   md5_key,
   createID,
   system
-} = require('./config');
+} = require('../config');
 
-/*test('Log Tests', () => {
-  expect(log).toBeDefined();
-  fs.unlinkSync(system.log);
-  log("Log Test", false);
-  var data = fs.readFileSync(system.log, 'utf8');
-  expect(data).toEqual('Log Test\n');
-});
-
-test('Resolve Path Tests', () => {
-  expect(resolvePath).toBeDefined();
-});
-
-test('Process WS Tests', done => {
-  expect(process).toBeDefined();
-  //setTimeout(function() {
-  const ws_local = new WebSocket('ws://localhost:' + system.port);
-  ws_local.on('open', function open() {
-    ws_local.send('something');
-  });
-  ws_local.on('message', function incoming(data) {
-    console.log(data);
-    done();
-  });
-  setTimeout(function() {
-    done();
-  }, 500);
-  //}, 100);
-});
-
-test('Close WSS', () => {
-  wss.close();
-});*/
 
 let ip_addr = (require('ip').address());
 console.log("Connecting: " + ip_addr + ":" + system.port);
@@ -58,11 +26,13 @@ ws_local.on('message', function incoming(data) {
   direct(data);
 });
 
+function finish() {
+  ws_local.send('close');
+}
 
-
-// {"code":6,"msg":"Key Set","data":"et0vkl51y"}
+// Test the key pairing system
 var server_key;
-test('Key_gen Test', done => {
+test('Key pairing Test', done => {
   direct = function(data) {
     console.log("Key_gen Test: " + data);
     let msg = JSON.parse(data);
@@ -113,6 +83,7 @@ test('Test <Tree>', done => {
     expect(dat.hash).toEqual(md5('dir3'));
 
     // All done
+    finish();
     done();
   };
   ws_local.send(JSON.stringify({

@@ -39,13 +39,6 @@ if (config.system.ssl === true) {
   });
 }
 
-if (config.system.testing === true) {
-  setTimeout(function() {
-    wss.close();
-    console.log("Test Timeout -> Close");
-  }, 10000);
-}
-
 // Set the client count to 0
 var client_count = 0;
 
@@ -109,6 +102,7 @@ wss.on('connection', function connection(ws) {
 // Process a message from the client
 function process(ws, message) {
   // Decode incoming message
+
   var results;
   try {
     results = JSON.parse(message);
@@ -118,7 +112,6 @@ function process(ws, message) {
       // If so and the message is 'close', close the server
       if (message == 'close') {
         wss.close();
-        console.log("External Close Command");
         return;
       }
     } else {
