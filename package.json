@@ -4,7 +4,7 @@
   "description": "Socket server for the Micro Editor",
   "main": "host.js",
   "scripts": {
-    "test": "jest --verbose",
+    "test": "jest --verbose --runInBand",
     "start_test": "node ./test/host_test_server.js",
     "run": "node ./main.js",
     "clean_log": "rm -r .log; touch .log",

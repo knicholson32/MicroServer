@@ -287,10 +287,8 @@ test('Check <save> Command -> New File', done => {
     } else {
       throw new Error("[save] Unexpected return code: " + msg.code);
     }
-    if (received_file_update === true && received_save_confirm === true) {
+    if (received_file_update === true && received_save_confirm === true)
       done();
-      success = true;
-    }
   };
   ws_local.send(JSON.stringify({
     "key": server_key,
