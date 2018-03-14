@@ -354,7 +354,7 @@ function MicroServer(args) {
             //    "msg":"200 OK",
             //    "data":[],
             //    "callback":"callback_here",
-            //    "cmd":"load"
+            //    "cmd":"delete"
             // }
 
             // Resolve the path
@@ -410,7 +410,7 @@ function MicroServer(args) {
             //    "msg":"200 OK",
             //    "data":[],
             //    "callback":"callback_here",
-            //    "cmd":"load"
+            //    "cmd":"move"
             // }
 
             // Resolve the paths
@@ -465,7 +465,7 @@ function MicroServer(args) {
             //    "msg":"200 OK",
             //    "data":[],
             //    "callback":"callback_here",
-            //    "cmd":"load"
+            //    "cmd":"copy"
             // }
 
             // Resolve the paths
@@ -508,6 +508,53 @@ function MicroServer(args) {
                   log('-> ' + message);
                   log(a);
                 }
+              }
+            }
+            break;
+          case "fingerprint":
+            // ============================== //
+            // Copies a specified file        //
+            // ============================== //
+            // Example: {
+            //    "key":"key_here",
+            //    "request":["fingerprint","./file1.txt"],
+            //    "callback":"callback_here"
+            // }
+            // -> Resolves: {
+            //    "code":1,
+            //    "msg":"200 OK",
+            //    "data":"file_fingerprint_here",
+            //    "callback":"callback_here",
+            //    "cmd":"fingerprint"
+            // }
+
+            // Resolve the paths
+            input_path = resolvePath(request[1]);
+            // If the path is false, the requested file is outside the scope
+            if (input_path === false) {
+              // Error: File is outside the allowed directory
+              code = 5;
+              msgOut = "Invalid file access. The target file is beyond the scope of the allowed directory.";
+              data = [request[1], request[2]];
+            } else {
+              // Get extensions for both file paths
+              let ext = path.parse(input_path).ext;
+              try {
+                // Check if the request is a file
+                if (ext == "") {
+                  // Folder's don't have a fingerprint
+                  data = "";
+                } else {
+                  // Get the file fingerprint
+                  data = md5(fs.readFileSync(input_path, 'utf8'));
+                }
+              } catch (a) {
+                // Catch any errors and report back
+                msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while hashing the file. Ensure correct paths.";
+                code = 5;
+                data = request[1];
+                log('-> ' + message);
+                log(a);
               }
             }
             break;

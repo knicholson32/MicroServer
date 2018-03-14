@@ -652,3 +652,59 @@ test('Check <move> Command - Directory', done => {
     "callback": "callback_copy"
   }));
 });
+
+// Test the fingerprint function
+test('Check <fingerprint> Command', done => {
+  direct = function(data) {
+    // Parse Data
+    let msg = {};
+    try {
+      msg = JSON.parse(data);
+    } catch (e) {}
+    // Check that the correct status code and message is present
+    expect(msg.code).toBeDefined();
+    expect(msg.code).toEqual(1);
+    expect(msg.msg).toBeDefined();
+    expect(msg.msg).toEqual("200 OK");
+    expect(msg.callback).toBeDefined();
+    expect(msg.callback).toEqual('callback_fingerprint');
+    expect(msg.cmd).toBeDefined();
+    expect(msg.cmd).toEqual('fingerprint');
+    expect(msg.data).toBeDefined();
+    expect(msg.data).toEqual(md5("This is file 1 (javascript) write - EDITED!"));
+    done();
+  };
+  ws_local.send(JSON.stringify({
+    "key": server_key,
+    "request": ["fingerprint", "dir1/file1.js"],
+    "callback": "callback_fingerprint"
+  }));
+});
+
+// Test the fingerprint function
+test('Check <fingerprint> Command - Directory', done => {
+  direct = function(data) {
+    // Parse Data
+    let msg = {};
+    try {
+      msg = JSON.parse(data);
+    } catch (e) {}
+    // Check that the correct status code and message is present
+    expect(msg.code).toBeDefined();
+    expect(msg.code).toEqual(1);
+    expect(msg.msg).toBeDefined();
+    expect(msg.msg).toEqual("200 OK");
+    expect(msg.callback).toBeDefined();
+    expect(msg.callback).toEqual('callback_fingerprint');
+    expect(msg.cmd).toBeDefined();
+    expect(msg.cmd).toEqual('fingerprint');
+    expect(msg.data).toBeDefined();
+    expect(msg.data).toEqual("");
+    done();
+  };
+  ws_local.send(JSON.stringify({
+    "key": server_key,
+    "request": ["fingerprint", "dir1/test_dir"],
+    "callback": "callback_fingerprint"
+  }));
+});
