@@ -158,6 +158,10 @@ function MicroServer(args) {
                   fs.recurseSync(input_path, function(filepath, relative, filename) {
                     // Determin the type based on if there is a filename
                     let type = (filename ? 'file' : 'dir');
+                    let fp = '';
+                    if (type == 'file') {
+                      fp = md5(fs.readFileSync(filepath, 'utf8'));
+                    }
                     // Parse the relative path
                     let parse = path.parse(relative);
                     // If the file is a system file, skip it
@@ -169,7 +173,8 @@ function MicroServer(args) {
                       type: type,
                       path: relative,
                       ext: parse.ext,
-                      hash: md5(relative)
+                      hash: md5(relative),
+                      fingerprint: fp
                     });
                   });
                 } catch (e) {
@@ -297,16 +302,16 @@ function MicroServer(args) {
                       };
                       // Save the file
                       fs.writeFileSync(input_path, request[3], options);
-                      wss.broadcast(input_path, request[3], 'update');
+                      wss.broadcast(input_path, request[3], 'update', md5(request[3]));
                     } else if (request[1] == 'append') {
                       // Save the file
                       fs.appendFileSync(input_path, request[3]);
                       let new_file = fs.readFileSync(input_path, 'utf-8');
-                      wss.broadcast(input_path, new_file, 'update');
+                      wss.broadcast(input_path, new_file, 'update', md5(new_file));
                     } else {
                       // Save the file
                       fs.writeFileSync(input_path, request[3]);
-                      wss.broadcast(input_path, request[3], 'update');
+                      wss.broadcast(input_path, request[3], 'update', md5(request[3]));
                     }
 
                   } catch (a) {
@@ -324,7 +329,7 @@ function MicroServer(args) {
                 } else {
                   // Create the folder
                   fs.mkdirSync(input_path);
-                  wss.broadcast(input_path, '', 'update');
+                  wss.broadcast(input_path, '', 'update', '');
                 }
               } catch (e) {
                 // Catch any errors and report back. Assume the directory does not exist.
@@ -369,7 +374,7 @@ function MicroServer(args) {
                 try {
                   // Delete the file
                   fs.unlinkSync(input_path);
-                  wss.broadcast(input_path, '', 'delete');
+                  wss.broadcast(input_path, '', 'delete', '');
                 } catch (a) {
                   // Catch any errors and report back
                   msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while deleting the file.";
@@ -382,7 +387,7 @@ function MicroServer(args) {
                 try {
                   // Delete the folder and contained files
                   fs.rmdirSync(input_path);
-                  wss.broadcast(input_path, '', 'delete');
+                  wss.broadcast(input_path, '', 'delete', '');
                 } catch (e) {
                   // Catch any errors and report back
                   code = 5;
@@ -435,7 +440,7 @@ function MicroServer(args) {
                 try {
                   fs.mkdirSync(path.parse(input_path2).dir);
                   fs.renameSync(input_path1, input_path2);
-                  wss.broadcast(input_path1, input_path2, 'move');
+                  wss.broadcast(input_path1, input_path2, 'move', '');
                 } catch (a) {
                   // Catch any errors and report back
                   msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while moving the file. Ensure correct paths.";
@@ -497,7 +502,7 @@ function MicroServer(args) {
                     // Copy the file
                     fs.copyFileSync(input_path1, input_path2);
                   }
-                  wss.broadcast(input_path1, input_path2, 'copy');
+                  wss.broadcast(input_path1, input_path2, 'copy', '');
                 } catch (a) {
                   // Catch any errors and report back
                   msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while copying the file. Ensure correct paths.";
@@ -611,19 +616,21 @@ function MicroServer(args) {
 
     // Broadcast function to alert all connections that there has been a file change
     // of some sort.
-    wss.broadcast = function broadcast(path, data, type, ws) {
+    wss.broadcast = function broadcast(path, data, type, fp) {
       // Loop through all clients
       wss.clients.forEach(function each(client) {
         // Check if the client is active
-        if (client.readyState === WebSocket.OPEN) { // && client !== ws) {
+        if (client.readyState === WebSocket.OPEN) {
           // Generate a message
           let return_msg = {
             code: 7,
             msg: "directory/file update",
             data: [path, data, type],
             callback: "file_tree_refresh",
-            cmd: "file_tree_refresh"
+            cmd: "file_tree_refresh",
+            fp: fp
           };
+          // TODO: Add fingerprint documentation
           // Send the return message
           client.send(JSON.stringify(return_msg));
         }
