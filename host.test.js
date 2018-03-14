@@ -50,7 +50,9 @@ test('Close WSS', () => {
 
 test('Process WS Tests', done => {
   //setTimeout(function() {
-  const ws_local = new WebSocket('ws://localhost:' + system.port);
+  let ip_addr = (require('ip').address());
+  console.log("Connecting: " + ip_addr + ":" + system.port);
+  const ws_local = new WebSocket('ws://' + (require('ip').address()) + ':' + system.port);
   ws_local.on('open', function open() {
     ws_local.send('something');
   });
