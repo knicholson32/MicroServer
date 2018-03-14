@@ -49,7 +49,6 @@ test('Check Client Denial', done => {
   const ws_local_den = new WebSocket('ws://' + (require('ip').address()) + ':' + 8081);
   ws_local_den.on('close', function open() {
     if (received_denial_message === true) {
-      ws_local_den = null;
       done();
     } else {
       throw new Error('Denial Message was not received.');
