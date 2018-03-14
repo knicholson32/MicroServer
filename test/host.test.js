@@ -29,7 +29,7 @@ function finish() {
 
 // Test the key pairing system
 var server_key;
-test('Key pairing Test', done => {
+test('Check Key pairing', done => {
   direct = function(data) {
     let msg = JSON.parse(data);
     expect(msg.code).toBeDefined();
@@ -43,9 +43,31 @@ test('Key pairing Test', done => {
   }
 });
 
+// Test client denial
+test('Check Client Denial', done => {
+  let received_denial_message = false;
+  const ws_local_den = new WebSocket('ws://' + (require('ip').address()) + ':' + 8081);
+  ws_local_den.on('close', function open() {
+    if (received_denial_message === true) {
+      ws_local_den = null;
+      done();
+    } else {
+      throw new Error('Denial Message was not received.');
+    }
+  });
+  var direct;
+  ws_local_den.on('message', function incoming(data) {
+    //{"code":0,"msg":"Max number of connections reached. Disconnecting.","data":[]}
+    let msg = JSON.parse(data);
+    expect(msg.code).toEqual(0);
+    expect(msg.msg).toEqual("Max number of connections reached. Disconnecting.");
+    expect(msg.data).toEqual([]);
+    received_denial_message = true;
+  });
+});
 
 // Test the tree function
-test('Test <Tree>', done => {
+test('Check <Tree> Command', done => {
   direct = function(data) {
     // Parse Data
     let msg = JSON.parse(data);
