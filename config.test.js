@@ -17,6 +17,7 @@ test('ID Tests', () => {
 });
 
 test('Key Tests', () => {
+  expect(system.key).toEqual('test_key');
   expect(md5_key).toEqual(md5(id + '-' + system.key));
 });
 

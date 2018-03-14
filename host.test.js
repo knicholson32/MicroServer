@@ -14,6 +14,8 @@ const {
   system
 } = require('./config');
 
+system.ssl = false;
+
 const {
   process,
   resolvePath,
@@ -35,8 +37,18 @@ test('Resolve Path Tests', () => {
   expect(resolvePath).toBeDefined();
 });
 
-test('Process Tests', () => {
+test('Process WS Tests', done => {
   expect(process).toBeDefined();
+  setTimeout(function() {
+    const ws_local = new WebSocket('ws://localhost:' + system.port);
+    ws_local.on('open', function open() {
+      ws_local.send('something');
+    });
+    ws_local.on('message', function incoming(data) {
+      console.log(data);
+      done();
+    });
+  }, 100);
 });
 
 test('Close WSS', () => {
