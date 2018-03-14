@@ -18,6 +18,8 @@ const config = require("./config");
 // Import file system packages
 var fs = require('file-system');
 const path = require('path');
+// Import MD5 Hash
+var md5 = require('md5');
 
 // Create the websocket server and bind it to the configured port
 var wss;
@@ -150,18 +152,20 @@ function process(ws, message){
           //      {
           //        "type":"file",
           //        "path":"file1.txt",
-          //        "ext":".txt"
+          //        "ext":".txt",
+          //        "md5":"abc123"
           //      },
           //      {
           //        "type":"dir",
           //        "path":"tmp",
-          //        "ext":""
+          //        "ext":"",
+          //        "md5":"123hashabc"
           //      }
           //    ],
           //    "callback":"callback_here",
           //    "cmd":"load"
           // }
-
+          // TODO: Match the wiki to the hash changes above.
           // Resolve the path
           input_path = resolvePath(request[1]);
           // If the path is false, the requested file is outside the scope
@@ -190,9 +194,8 @@ function process(ws, message){
                   if(filename && parse.base.charAt(0) == '.'){
                     return;
                   }
-
                   // Push the results to be sent back
-                  data.push({type:type, path:relative, ext:parse.ext});
+                  data.push({type:type, path:relative, ext:parse.ext, hash:md5(path.parse(input_path).base)});
                 });
               }catch(e){
                 // Catch any errors and report back. Assume the directory does not exist.
