@@ -258,6 +258,52 @@ test('Check <load> Command Part 2', done => {
   }));
 });
 
+// Test the delete function
+test('Check <delete> Command', done => {
+  let received_del_confirm = false;
+  let received_file_update = false;
+  direct = function(data) {
+    // Parse Data
+    let msg = JSON.parse(data);
+    // Check that the correct status code and message is present
+    expect(msg.code).toBeDefined();
+    if (msg.code === 7) {
+      expect(msg.msg).toBeDefined();
+      expect(msg.msg).toEqual("directory/file update");
+      expect(msg.callback).toBeDefined();
+      expect(msg.callback).toEqual('file_tree_refresh');
+      expect(msg.cmd).toBeDefined();
+      expect(msg.cmd).toEqual('file_tree_refresh');
+      expect(msg.data).toBeDefined();
+      expect(msg.data).not.toBeNull();
+      expect(msg.data.length).toEqual(3);
+      expect(msg.data[0]).toEqual('files/file2.txt');
+      expect(msg.data[1]).toEqual('');
+      expect(msg.data[2]).toEqual('delete');
+      received_file_update = true;
+    } else if (msg.code === 1) {
+      expect(msg.msg).toBeDefined();
+      expect(msg.msg).toEqual("200 OK");
+      expect(msg.callback).toBeDefined();
+      expect(msg.callback).toEqual('callback_delete');
+      expect(msg.cmd).toBeDefined();
+      expect(msg.cmd).toEqual('delete');
+      expect(msg.data).toBeDefined();
+      expect(msg.data).toEqual([]);
+      received_del_confirm = true;
+    } else {
+      throw new Error("[save] Unexpected return code: " + msg.code);
+    }
+    if (received_del_confirm === true && received_file_update === true)
+      done();
+  };
+  ws_local.send(JSON.stringify({
+    "key": server_key,
+    "request": ["delete", "./file2.txt"],
+    "callback": "callback_delete"
+  }));
+});
+
 afterAll(() => {
   finish();
 });

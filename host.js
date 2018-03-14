@@ -621,7 +621,7 @@ function MicroServer(args) {
           client.send(JSON.stringify(return_msg));
         }
       });
-      log('Broadcast file/dir update:' + data);
+      log('Broadcast file/dir update: ' + data);
     };
 
     // Init log file
