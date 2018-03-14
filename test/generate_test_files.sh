@@ -2,7 +2,7 @@
 rm -rf files
 mkdir files
 cd files
-echo "This is file 1" > file1.js
+echo "This is file 1 (javascript)" > file1.js
 echo "This is file 2" > file2.txt
 mkdir dir1
 mkdir dir2

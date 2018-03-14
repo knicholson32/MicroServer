@@ -75,6 +75,10 @@ test('Check <Tree> Command', done => {
     expect(msg.code).toEqual(1);
     expect(msg.msg).toBeDefined();
     expect(msg.msg).toEqual("200 OK");
+    expect(msg.callback).toBeDefined();
+    expect(msg.callback).toEqual('callback_tree');
+    expect(msg.cmd).toBeDefined();
+    expect(msg.cmd).toEqual('tree');
     expect(msg.data).toBeDefined();
     expect(msg.data).not.toBeNull();
     // Check that there are 10 elements
@@ -97,13 +101,71 @@ test('Check <Tree> Command', done => {
     expect(dat.path).toEqual('dir3');
     expect(dat.ext).toEqual('');
     expect(dat.hash).toEqual(md5('dir3'));
-    // All done
-    finish();
     done();
   };
   ws_local.send(JSON.stringify({
     "key": server_key,
     "request": ["tree", "./"],
     "callback": "callback_tree"
+  }));
+});
+
+// Test the load function
+test('Check <load> Command Part 1', done => {
+  direct = function(data) {
+    // Parse Data
+    let msg = JSON.parse(data);
+    // Check that the correct status code and message is present
+    expect(msg.code).toBeDefined();
+    expect(msg.code).toEqual(1);
+    expect(msg.msg).toBeDefined();
+    expect(msg.msg).toEqual("200 OK");
+    expect(msg.callback).toBeDefined();
+    expect(msg.callback).toEqual('callback_load');
+    expect(msg.cmd).toBeDefined();
+    expect(msg.cmd).toEqual('load');
+    expect(msg.data).toBeDefined();
+    expect(msg.data).not.toBeNull();
+    expect(msg.data.name).toEqual('file3.txt');
+    expect(msg.data.size).toEqual(15);
+    expect(msg.data.enc).toEqual('utf-8');
+    expect(msg.data.data).toEqual('This is file 3\n');
+    done();
+  };
+  ws_local.send(JSON.stringify({
+    "key": server_key,
+    "request": ["load", "utf-8", "dir1/dir4/file3.txt"],
+    "callback": "callback_load"
+  }));
+});
+
+// Test the load function
+test('Check <load> Command Part 2', done => {
+  direct = function(data) {
+    // Parse Data
+    let msg = JSON.parse(data);
+    // Check that the correct status code and message is present
+    expect(msg.code).toBeDefined();
+    expect(msg.code).toEqual(1);
+    expect(msg.msg).toBeDefined();
+    expect(msg.msg).toEqual("200 OK");
+    expect(msg.callback).toBeDefined();
+    expect(msg.callback).toEqual('callback_load');
+    expect(msg.cmd).toBeDefined();
+    expect(msg.cmd).toEqual('load');
+    expect(msg.data).toBeDefined();
+    expect(msg.data).not.toBeNull();
+    expect(msg.data.name).toEqual('file1.js');
+    expect(msg.data.size).toEqual(28);
+    expect(msg.data.enc).toEqual('utf-8');
+    expect(msg.data.data).toEqual('This is file 1 (javascript)\n');
+    // All done
+    finish();
+    done();
+  };
+  ws_local.send(JSON.stringify({
+    "key": server_key,
+    "request": ["load", "utf-8", "file1.js"],
+    "callback": "callback_load"
   }));
 });
