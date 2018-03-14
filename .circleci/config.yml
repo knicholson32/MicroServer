@@ -16,7 +16,7 @@ jobs:
       - run: npm run clean_log
       - run:
           name: starting websocket server
-          command: sh -c "npm start" # & PID=$! && echo "PID is $PID and PWD is $PWD"
+          command: sh -c "npm run start_test" # & PID=$! && echo "PID is $PID and PWD is $PWD"
           background: true
-      - run: sleep 5
+      - run: sleep 2
       - run: npm test
