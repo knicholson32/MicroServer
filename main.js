@@ -1,4 +1,4 @@
-const MicroServer = require('../host');
+const MicroServer = require('./host');
 
 let users = [{
   name: 'user1',
