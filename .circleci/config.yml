@@ -11,7 +11,15 @@ jobs:
 
     steps:
       - checkout
+      - restore_cache:
+         keys:
+           - m2-{{ checksum "package.json" }}
+           - m2- # used if checksum fails
       - run: npm install
+      - save_cache:
+         key: m2-{{ checksum "package.json" }}
+         paths:
+           - node_modules
       - run: npm run generate_test_files
       - run: npm run clean_log
       - run:
