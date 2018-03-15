@@ -21,16 +21,27 @@ const path = require('path');
 // Import MD5 Hash
 var md5 = require('md5');
 
+// TODO: Document changes:
+// Removed key from system (system.key)
+// Added user name config to system
+//  Hash: username + "_" + password + "_" + session_id
+// Added code 8: Permission denied
+
 function MicroServer(args) {
   this.system = {
     port: 8081, // Port to bind websocket server
     max_clients: 2, // Max number of allowed clients
-    key: 'pa88w0r4', // Default interface key
     directory: './files', // Storage location
     log: './.log', // Log location
     ssl: false, // Use SSL to encrypt websocket
     cert: './certificate.pem', // Path to SSL certificate
-    key_ssl: './key.pem' // Path to SSL key
+    key_ssl: './key.pem', // Path to SSL key
+    users: [{
+      name: 'root',
+      pass: 'password',
+      folder: '',
+      permission: 'read-write'
+    }]
   };
 
   for (var k in args) {
@@ -39,16 +50,26 @@ function MicroServer(args) {
     }
   }
 
+
+
   this.system.testing = false;
   this.system.id = getID();
   this.system.md5_key = md5(this.system.id + '-' + this.system.key);
   this.createID = getID;
+
+  this.user_list = {};
+  for (let k = 0; k < this.system.users.length; k++) {
+    let usr = this.system.users[k];
+    this.user_list[md5(usr.name + "_" + usr.pass + "_" + this.system.id)] = usr;
+  }
+  var user_list = this.user_list;
 
   this.enableClose = function() {
     this.system.testing = true;
   };
 
   var system = this.system;
+  var current_user = {};
 
   // Process a message from the client
   var process = function(ws, message) {
@@ -79,9 +100,6 @@ function MicroServer(args) {
     // Declare a variable for the callback ID
     var callback = "";
 
-    // Log the message
-    log('-> ' + message);
-
     // Check that the input was a valid json message
     if (results === undefined || results.key === undefined || results.request === undefined || !Array.isArray(results.request) || results.callback === undefined) {
       // If not, error
@@ -95,9 +113,9 @@ function MicroServer(args) {
       let request = results.request;
       // Go ahead and set the callback to match the query callback
       callback = results.callback;
-
+      current_user = user_list[key];
       // Check that the key is valid
-      if (key != system.md5_key) {
+      if (current_user === undefined || current_user === null || current_user === {} /*key != system.md5_key*/ ) {
         code = 4;
         msgOut = "Invalid handshake key.";
         console.log("Invalid Key: " + key + "\n");
@@ -142,7 +160,7 @@ function MicroServer(args) {
             // If the path is false, the requested file is outside the scope
             if (input_path === false) {
               // Error: File is outside the allowed directory
-              code = 5;
+              code = 8;
               msgOut = "Invalid file access. The requested file is beyond the scope of the allowed directory.";
               data = request[1];
             } else {
@@ -216,14 +234,14 @@ function MicroServer(args) {
             // If the path is false, the requested file is outside the scope
             if (input_path === false) {
               // Error: File is outside the allowed directory
-              code = 5;
+              code = 8;
               msgOut = "Invalid file access. The requested file is beyond the scope of the allowed directory.";
               data = request[2];
             } else {
               // Ensure that the operated path is a file
               if (path.parse(input_path).ext == "") {
                 // Error: Command argument is a directory, not a file
-                code = 5;
+                code = 8;
                 msgOut = "Invalid file access. A '" + cmdID + "' command can only be operated on a file, while a directory was provided.";
                 data = request[2];
               } else {
@@ -276,67 +294,74 @@ function MicroServer(args) {
             //    "cmd":"save"
             // }
 
-            // Resolve the path
-            input_path = resolvePath(request[2]);
-            // If the path is false, the requested file is outside the scope
-            if (input_path === false) {
-              // Error: File is outside the allowed directory
-              code = 5;
-              msgOut = "Invalid file access. The target file is beyond the scope of the allowed directory.";
+            // Check that the user is allowed to save files:
+            if (current_user.permission != 'read-write') {
+              code = 8;
+              msgOut = "Invalid file access. Permission denied.";
               data = request[2];
             } else {
-              // Generate path parse of the path given by the user
-              let path_parse = path.parse(input_path);
-              try {
-                // Check if there is a file extension
-                if (path_parse.ext != "") {
-                  // Create all folders leading to the file
-                  fs.mkdirSync(path_parse.dir);
-                  try {
-                    // Check the encoding type
-                    if (request[1] !== undefined && request[1] != 'none' && request[1] != 'append') {
-                      // Create an options tree for encoded saving
-                      let options = {
-                        encoding: request[1]
-                      };
-                      // Save the file
-                      fs.writeFileSync(input_path, request[3], options);
-                      wss.broadcast(cleanHeadDir(input_path), request[3], 'update', md5(request[3]));
-                    } else if (request[1] == 'append') {
-                      // Save the file
-                      fs.appendFileSync(input_path, request[3]);
-                      let new_file = fs.readFileSync(input_path, 'utf-8');
-                      wss.broadcast(cleanHeadDir(input_path), new_file, 'update', md5(new_file));
-                    } else {
-                      // Save the file
-                      fs.writeFileSync(input_path, request[3]);
-                      wss.broadcast(cleanHeadDir(input_path), request[3], 'update', md5(request[3]));
-                    }
-
-                  } catch (a) {
-                    // Catch any errors and report back. Assume the directory does not exist.
-                    if (request[1] != 'none') {
-                      msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An issue may have occured with the specified encoding: '" + request[1] + "'";
-                    } else {
-                      msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while writing the file.";
-                    }
-                    code = 5;
-                    data = request[2];
-                    log('-> ' + message);
-                    log(a);
-                  }
-                } else {
-                  // Create the folder
-                  fs.mkdirSync(input_path);
-                  wss.broadcast(cleanHeadDir(input_path), '', 'update', '');
-                }
-              } catch (e) {
-                // Catch any errors and report back. Assume the directory does not exist.
+              // Resolve the path
+              input_path = resolvePath(request[2]);
+              // If the path is false, the requested file is outside the scope
+              if (input_path === false) {
+                // Error: File is outside the allowed directory
                 code = 5;
-                msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while creating the directory.";
+                msgOut = "Invalid file access. The target file is beyond the scope of the allowed directory.";
                 data = request[2];
-                log('-> ' + message);
-                log(e);
+              } else {
+                // Generate path parse of the path given by the user
+                let path_parse = path.parse(input_path);
+                try {
+                  // Check if there is a file extension
+                  if (path_parse.ext != "") {
+                    // Create all folders leading to the file
+                    fs.mkdirSync(path_parse.dir);
+                    try {
+                      // Check the encoding type
+                      if (request[1] !== undefined && request[1] != 'none' && request[1] != 'append') {
+                        // Create an options tree for encoded saving
+                        let options = {
+                          encoding: request[1]
+                        };
+                        // Save the file
+                        fs.writeFileSync(input_path, request[3], options);
+                        wss.broadcast(cleanHeadDir(input_path), request[3], 'update', md5(request[3]));
+                      } else if (request[1] == 'append') {
+                        // Save the file
+                        fs.appendFileSync(input_path, request[3]);
+                        let new_file = fs.readFileSync(input_path, 'utf-8');
+                        wss.broadcast(cleanHeadDir(input_path), new_file, 'update', md5(new_file));
+                      } else {
+                        // Save the file
+                        fs.writeFileSync(input_path, request[3]);
+                        wss.broadcast(cleanHeadDir(input_path), request[3], 'update', md5(request[3]));
+                      }
+
+                    } catch (a) {
+                      // Catch any errors and report back. Assume the directory does not exist.
+                      if (request[1] != 'none') {
+                        msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An issue may have occured with the specified encoding: '" + request[1] + "'";
+                      } else {
+                        msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while writing the file.";
+                      }
+                      code = 5;
+                      data = request[2];
+                      log('-> ' + message);
+                      log(a);
+                    }
+                  } else {
+                    // Create the folder
+                    fs.mkdirSync(input_path);
+                    wss.broadcast(cleanHeadDir(input_path), '', 'update', '');
+                  }
+                } catch (e) {
+                  // Catch any errors and report back. Assume the directory does not exist.
+                  code = 5;
+                  msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while creating the directory.";
+                  data = request[2];
+                  log('-> ' + message);
+                  log(e);
+                }
               }
             }
             break;
@@ -357,41 +382,48 @@ function MicroServer(args) {
             //    "cmd":"delete"
             // }
 
-            // Resolve the path
-            input_path = resolvePath(request[1]);
-            // If the path is false, the requested file is outside the scope
-            if (input_path === false) {
-              // Error: File is outside the allowed directory
-              code = 5;
-              msgOut = "Invalid file access. The target file is beyond the scope of the allowed directory.";
+            // Check that the user is allowed to save files:
+            if (current_user.permission != 'read-write') {
+              code = 8;
+              msgOut = "Invalid file access. Permission denied.";
               data = request[1];
             } else {
-              // Generate path parse of the path given by the user
-              let path_parse = path.parse(input_path);
-              // Check if there is a file extension
-              if (path_parse.ext != "") {
-                try {
-                  // Delete the file
-                  fs.unlinkSync(input_path);
-                  wss.broadcast(cleanHeadDir(input_path), '', 'delete', '');
-                } catch (a) {
-                  // Catch any errors and report back
-                  msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while deleting the file.";
-                  code = 5;
-                  data = request[1];
-                  log('-> ' + message);
-                  log(a);
-                }
+              // Resolve the path
+              input_path = resolvePath(request[1]);
+              // If the path is false, the requested file is outside the scope
+              if (input_path === false) {
+                // Error: File is outside the allowed directory
+                code = 8;
+                msgOut = "Invalid file access. The target file is beyond the scope of the allowed directory.";
+                data = request[1];
               } else {
-                try {
-                  // Delete the folder and contained files
-                  fs.rmdirSync(input_path);
-                  wss.broadcast(cleanHeadDir(input_path), '', 'delete', '');
-                } catch (e) {
-                  // Catch any errors and report back
-                  code = 5;
-                  msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while deleting the directory.";
-                  data = request[1];
+                // Generate path parse of the path given by the user
+                let path_parse = path.parse(input_path);
+                // Check if there is a file extension
+                if (path_parse.ext != "") {
+                  try {
+                    // Delete the file
+                    fs.unlinkSync(input_path);
+                    wss.broadcast(cleanHeadDir(input_path), '', 'delete', '');
+                  } catch (a) {
+                    // Catch any errors and report back
+                    msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while deleting the file.";
+                    code = 5;
+                    data = request[1];
+                    log('-> ' + message);
+                    log(a);
+                  }
+                } else {
+                  try {
+                    // Delete the folder and contained files
+                    fs.rmdirSync(input_path);
+                    wss.broadcast(cleanHeadDir(input_path), '', 'delete', '');
+                  } catch (e) {
+                    // Catch any errors and report back
+                    code = 5;
+                    msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while deleting the directory.";
+                    data = request[1];
+                  }
                 }
               }
             }
@@ -413,40 +445,47 @@ function MicroServer(args) {
             //    "cmd":"move"
             // }
 
-            // Resolve the paths
-            input_path1 = resolvePath(request[1]);
-            input_path2 = resolvePath(request[2]);
-            // If the path is false, the requested file is outside the scope
-            if (input_path1 === false || input_path2 === false) {
-              // Error: File is outside the allowed directory
-              code = 5;
-              msgOut = "Invalid file access. The target file is beyond the scope of the allowed directory.";
+            // Check that the user is allowed to save files:
+            if (current_user.permission != 'read-write') {
+              code = 8;
+              msgOut = "Invalid file access. Permission denied.";
               data = [request[1], request[2]];
             } else {
-              // Get extensions for both file paths
-              let ext1 = path.parse(input_path1).ext;
-              let ext2 = path.parse(input_path2).ext;
-              if ((ext1 == "" && ext2 != "") || (ext1 != "" && ext2 == "")) {
-                // Report back this error
-                if (ext1 == "") {
-                  msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A directory cannot be converted to a file.";
-                } else {
-                  msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A file cannot be converted to a directory.";
-                }
-                code = 5;
+              // Resolve the paths
+              input_path1 = resolvePath(request[1]);
+              input_path2 = resolvePath(request[2]);
+              // If the path is false, the requested file is outside the scope
+              if (input_path1 === false || input_path2 === false) {
+                // Error: File is outside the allowed directory
+                code = 8;
+                msgOut = "Invalid file access. The target file is beyond the scope of the allowed directory.";
                 data = [request[1], request[2]];
               } else {
-                try {
-                  fs.mkdirSync(path.parse(input_path2).dir);
-                  fs.renameSync(input_path1, input_path2);
-                  wss.broadcast(cleanHeadDir(input_path1), cleanHeadDir(input_path2), 'move', '');
-                } catch (a) {
-                  // Catch any errors and report back
-                  msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while moving the file. Ensure correct paths.";
+                // Get extensions for both file paths
+                let ext1 = path.parse(input_path1).ext;
+                let ext2 = path.parse(input_path2).ext;
+                if ((ext1 == "" && ext2 != "") || (ext1 != "" && ext2 == "")) {
+                  // Report back this error
+                  if (ext1 == "") {
+                    msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A directory cannot be converted to a file.";
+                  } else {
+                    msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A file cannot be converted to a directory.";
+                  }
                   code = 5;
-                  data = request[1];
-                  log('-> ' + message);
-                  log(a);
+                  data = [request[1], request[2]];
+                } else {
+                  try {
+                    fs.mkdirSync(path.parse(input_path2).dir);
+                    fs.renameSync(input_path1, input_path2);
+                    wss.broadcast(cleanHeadDir(input_path1), cleanHeadDir(input_path2), 'move', '');
+                  } catch (a) {
+                    // Catch any errors and report back
+                    msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while moving the file. Ensure correct paths.";
+                    code = 5;
+                    data = request[1];
+                    log('-> ' + message);
+                    log(a);
+                  }
                 }
               }
             }
@@ -468,45 +507,52 @@ function MicroServer(args) {
             //    "cmd":"copy"
             // }
 
-            // Resolve the paths
-            input_path1 = resolvePath(request[1]);
-            input_path2 = resolvePath(request[2]);
-            // If the path is false, the requested file is outside the scope
-            if (input_path1 === false || input_path2 === false) {
-              // Error: File is outside the allowed directory
-              code = 5;
-              msgOut = "Invalid file access. The target file is beyond the scope of the allowed directory.";
+            // Check that the user is allowed to save files:
+            if (current_user.permission != 'read-write') {
+              code = 8;
+              msgOut = "Invalid file access. Permission denied.";
               data = [request[1], request[2]];
             } else {
-              // Get extensions for both file paths
-              let ext1 = path.parse(input_path1).ext;
-              let ext2 = path.parse(input_path2).ext;
-              if ((ext1 == "" && ext2 != "") || (ext1 != "" && ext2 == "")) {
-                // Report back this error
-                if (ext1 == "") {
-                  msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A directory cannot be converted to a file.";
-                } else {
-                  msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A file cannot be converted to a directory.";
-                }
-                code = 5;
+              // Resolve the paths
+              input_path1 = resolvePath(request[1]);
+              input_path2 = resolvePath(request[2]);
+              // If the path is false, the requested file is outside the scope
+              if (input_path1 === false || input_path2 === false) {
+                // Error: File is outside the allowed directory
+                code = 8;
+                msgOut = "Invalid file access. The target file is beyond the scope of the allowed directory.";
                 data = [request[1], request[2]];
               } else {
-                try {
+                // Get extensions for both file paths
+                let ext1 = path.parse(input_path1).ext;
+                let ext2 = path.parse(input_path2).ext;
+                if ((ext1 == "" && ext2 != "") || (ext1 != "" && ext2 == "")) {
+                  // Report back this error
                   if (ext1 == "") {
-                    // Copy the folder
-                    fs.copySync(input_path1, input_path2);
+                    msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A directory cannot be converted to a file.";
                   } else {
-                    // Copy the file
-                    fs.copyFileSync(input_path1, input_path2);
+                    msgOut = "Invalid target. Server was unable to preform a '" + cmdID + "'. A file cannot be converted to a directory.";
                   }
-                  wss.broadcast(cleanHeadDir(input_path1), cleanHeadDir(input_path2), 'copy', '');
-                } catch (a) {
-                  // Catch any errors and report back
-                  msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while copying the file. Ensure correct paths.";
                   code = 5;
-                  data = request[1];
-                  log('-> ' + message);
-                  log(a);
+                  data = [request[1], request[2]];
+                } else {
+                  try {
+                    if (ext1 == "") {
+                      // Copy the folder
+                      fs.copySync(input_path1, input_path2);
+                    } else {
+                      // Copy the file
+                      fs.copyFileSync(input_path1, input_path2);
+                    }
+                    wss.broadcast(cleanHeadDir(input_path1), cleanHeadDir(input_path2), 'copy', '');
+                  } catch (a) {
+                    // Catch any errors and report back
+                    msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while copying the file. Ensure correct paths.";
+                    code = 5;
+                    data = request[1];
+                    log('-> ' + message);
+                    log(a);
+                  }
                 }
               }
             }
@@ -533,7 +579,7 @@ function MicroServer(args) {
             // If the path is false, the requested file is outside the scope
             if (input_path === false) {
               // Error: File is outside the allowed directory
-              code = 5;
+              code = 8;
               msgOut = "Invalid file access. The target file is beyond the scope of the allowed directory.";
               data = [request[1], request[2]];
             } else {
@@ -566,6 +612,9 @@ function MicroServer(args) {
       }
     }
 
+    // Log the message
+    log('-> \'' + (current_user.name === undefined ? "unknown" : current_user.name) + "\': " + message);
+
     // Form the return message
     let return_msg = {
       code: code,
@@ -576,7 +625,7 @@ function MicroServer(args) {
     };
     // Send the return message
     ws.send(JSON.stringify(return_msg));
-    log("<- [" + code + "] (" + cmdID + ") '" + msgOut + "'");
+    log("<- [" + code + "] (" + cmdID + ") to '" + (current_user.name === undefined ? "unknown" : current_user.name) + "' : '" + msgOut + "'");
   };
 
   this.wss = undefined;
@@ -608,6 +657,7 @@ function MicroServer(args) {
      * 5: Error
      * 6: Key set
      * 7: File/Directory Update
+     * 8: Permission denied
      */
 
     var id = system.id;
@@ -711,16 +761,18 @@ function MicroServer(args) {
   // Resolve a path relative to the file directory. If a file path is resolved that
   // is outside the scope of the file directory, false is returned.
   function resolvePath(input_path) {
+    // Resolve the path at which the current user should have access to
+    let user_root = path.resolve(system.directory, current_user.folder);
     // Resolves the input path with the file directory at the start:
     // IE: ./files/ input/files/here
-    let conv = path.resolve(system.directory, path.normalize(input_path));
+    let conv = path.resolve(user_root, path.normalize(input_path));
     // Resolves the file directory in terms of the system
-    let base = path.resolve(system.directory);
+    let base = user_root;
     // Compares the two paths. If '../' or '..\\' is found, it can be determined that
     // the user is trying to access something outside the allowed folder. Deny it.
     let overlap = path.relative(base, conv);
-    if (!overlap.includes('../') && !overlap.includes('..\\')) {
-      return path.join(system.directory, overlap);
+    if (!overlap.includes('../') && !overlap.includes('..\\') && !overlap.includes('~/') && !overlap.includes('~\\')) {
+      return path.join(user_root, overlap);
     } else {
       return false;
     }
