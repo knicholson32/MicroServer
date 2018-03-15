@@ -760,7 +760,6 @@ function MicroServer(args) {
 
   // Resolve a path relative to the file directory. If a file path is resolved that
   // is outside the scope of the file directory, false is returned.
-  // TODO: Ensure a user cannot use '../' to access another user's files
   function resolvePath(input_path) {
     // Resolve the path at which the current user should have access to
     let user_root = path.resolve(system.directory, current_user.folder);
