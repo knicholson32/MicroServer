@@ -30,6 +30,5 @@ jobs:
       - run: sleep 2
       - run: npm test
       - run: npm run jshint
-      - run: mkdir ./test/test-results
       - store_test_results:
-          path: /test/test-results
+          path: ./.log
