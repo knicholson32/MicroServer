@@ -46,7 +46,7 @@ function MicroServer(args) {
 
   this.enableClose = function() {
     this.system.testing = true;
-  }
+  };
 
   var system = this.system;
 
@@ -577,9 +577,9 @@ function MicroServer(args) {
     // Send the return message
     ws.send(JSON.stringify(return_msg));
     log("<- [" + code + "] (" + cmdID + ") '" + msgOut + "'");
-  }
+  };
 
-  this.wss;
+  this.wss = undefined;
   var client_count = 0;
   this.start = function() {
     // Create the websocket server and bind it to the configured port
@@ -694,7 +694,7 @@ function MicroServer(args) {
     console.log("Type ctrl-C to exit.");
     console.log("Awaiting connections...");
 
-  }
+  };
 
   this.stop = function() {
     try {
@@ -702,7 +702,7 @@ function MicroServer(args) {
       wss = null;
       this.client_count = 0;
     } catch (e) {}
-  }
+  };
 
   function getID() {
     return Math.random().toString(36).substr(2, 9);
@@ -737,28 +737,27 @@ function MicroServer(args) {
   console.log = function(e) {
     log(e);
     old_c(e);
-  }
+  };
 
   // Log file print
   log = function(e, date = true) {
     if (date === false) {
       try {
         fs.appendFileSync(system.log, '' + e + '\n');
-      } catch (e) {
-        old_c(e);
+      } catch (exc) {
+        old_c(exc);
       }
     } else {
       let d = new Date();
       dateString = d.toTimeString().split(' ')[0];
       try {
         fs.appendFileSync(system.log, dateString + '  ' + e + '\n');
-      } catch (e) {
-        old_c(e);
+      } catch (exc) {
+        old_c(exc);
       }
     }
-  }
+  };
   var log = log;
-  var system = this.system;
 }
 
 

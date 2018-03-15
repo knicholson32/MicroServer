@@ -19,4 +19,4 @@ ms.start();
 // Example for how to close the server
 setTimeout(function() {
   ms.close();
-}, 30000)
+}, 30000);
