@@ -4,7 +4,12 @@
   "description": "Socket server for the Micro Editor",
   "main": "host.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest --verbose --runInBand",
+    "start_test": "node ./test/host_test_server.js",
+    "run": "node ./main.js",
+    "clean_log": "rm -r .log; touch .log",
+    "generate_test_files": "./test/generate_test_files.sh",
+    "jshint":"jshint ./*.js --config ./test/.jshintrc"
   },
   "repository": {
     "type": "git",
@@ -18,10 +23,16 @@
   "homepage": "https://github.com/knicholson32/MicroServer#readme",
   "dependencies": {
     "file-system": "^2.2.2",
-    "md5": "^2.2.1",
-    "ws": "^4.1.0"
+    "md5": "^2.2.1"
   },
   "devDependencies": {
-    "jest": "^22.4.2"
+    "@ionic/app-scripts": "^3.1.8",
+    "ip": "^1.1.5",
+    "jest": "^22.4.2",
+    "jshint": "^2.9.5"
+  },
+  "jest": {
+    "testRegex": "./test/.*test.js$",
+    "rootDir": "."
   }
 }

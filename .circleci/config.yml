@@ -11,5 +11,34 @@ jobs:
 
     steps:
       - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
       - run: npm install
-      - run: npm test
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run:
+          name: Generate Test Files
+          command: npm run generate_test_files
+      - run:
+          name: Clear Native Logs
+          command: npm run clean_log
+      - run:
+          name: Start MicroServer
+          command: sh -c "npm run start_test"
+          background: true
+      - run:
+          name: Delay 2s
+          command: sleep 2
+      - run:
+          name: Run Tests
+          command: npm test
+      - run:
+          name: Run JSHint
+          command: npm run jshint
+      - store_artifacts:
+          path: ./.log
