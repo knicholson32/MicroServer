@@ -18,5 +18,5 @@ jobs:
           name: starting websocket server
           command: sh -c "npm run start_test" # & PID=$! && echo "PID is $PID and PWD is $PWD"
           background: true
-      - run: sleep 2
+      - run: npm run jshint
       - run: npm test

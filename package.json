@@ -8,7 +8,8 @@
     "start_test": "node ./test/host_test_server.js",
     "run": "node ./main.js",
     "clean_log": "rm -r .log; touch .log",
-    "generate_test_files": "./test/generate_test_files.sh"
+    "generate_test_files": "./test/generate_test_files.sh",
+    "jshint":"jshint ./*.js --config ./test/.jshintrc"
   },
   "repository": {
     "type": "git",
@@ -27,7 +28,8 @@
   "devDependencies": {
     "@ionic/app-scripts": "^3.1.8",
     "ip": "^1.1.5",
-    "jest": "^22.4.2"
+    "jest": "^22.4.2",
+    "jshint": "^2.9.5"
   },
   "jest": {
     "testRegex": "./test/.*test.js$",
