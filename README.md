@@ -1,3 +1,6 @@
+[![CircleCI branch](https://img.shields.io/circleci/project/github/knicholson32/MicroServer/master.svg)](https://circleci.com/gh/knicholson32/MicroServer)
+
+
 # MicroServer
 [![Release](https://img.shields.io/github/release/knicholson/MicroServer.svg)](https://github.com/knicholson32/MicroServer)
 [![CircleCI branch](https://img.shields.io/circleci/project/github/knicholson32/MicroServer/master.svg)](https://circleci.com/gh/knicholson32/MicroServer)
