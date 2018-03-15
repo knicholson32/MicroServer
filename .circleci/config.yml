@@ -12,20 +12,23 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-         keys:
-           - m2-{{ checksum "package.json" }}
-           - m2- # used if checksum fails
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
       - run: npm install
       - save_cache:
-         key: m2-{{ checksum "package.json" }}
-         paths:
-           - node_modules
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
       - run: npm run generate_test_files
       - run: npm run clean_log
       - run:
           name: starting websocket server
-          command: sh -c "npm run start_test" # & PID=$! && echo "PID is $PID and PWD is $PWD"
+          command: sh -c "npm run start_test"
           background: true
       - run: sleep 2
       - run: npm test
       - run: npm run jshint
+      - store_test_results:
+          path: /test/test-results
