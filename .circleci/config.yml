@@ -21,14 +21,22 @@ jobs:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
-      - run: npm run generate_test_files
-      - run: npm run clean_log
       - run:
-          name: starting websocket server
+          name: Generate Test Files
+          command: npm run generate_test_files
+      - run:
+          name: Clear Native Logs
+          command: npm run clean_log
+      - run:
+          name: Start MicroServer
           command: sh -c "npm run start_test"
           background: true
       - run: sleep 2
-      - run: npm test
-      - run: npm run jshint
+      - run:
+          name: Run Tests
+          command: npm test
+      - run:
+          name: Run JSHint
+          command: npm run jshint
       - store_test_results:
           path: ./.log

@@ -41,7 +41,7 @@ test('Check Key pairing', done => {
     expect(msg.data).not.toBeNull();
     server_key = md5(msg.data + '-test_key');
     done();
-  }
+  };
 });
 
 // Test client denial
