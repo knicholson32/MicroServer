@@ -1,21 +1,19 @@
-// Import the server
-const MicroServer = require('./host');
+const MicroServer = require('../host');
 
-// Configure the server
+let users = [{
+  name: 'user1',
+  pass: 'pass1',
+  folder: './',
+  permission: 'read-write'
+}];
+
 let ms = new MicroServer({
   port: 8081, // Port to bind websocket server
   max_clients: 2, // Max number of allowed clients
   directory: './files', // Storage location
   log: './.log', // Log location
   ssl: false, // Use SSL to encrypt websocket
-  cert: './certificate.pem', // Path to SSL certificate
-  key_ssl: './key.pem' // Path to SSL key
+  users: users
 });
 
-// Start the server
 ms.start();
-
-// Example for how to close the server
-setTimeout(function() {
-  ms.close();
-}, 30000);
