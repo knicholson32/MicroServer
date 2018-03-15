@@ -29,7 +29,7 @@ npm i
 ## Create MicroServer
 ```JavaScript
 /* main.js */
-const MicroServer = require('../host');
+const MicroServer = require('./host');
 
 let users = [{
   name: 'user1',
