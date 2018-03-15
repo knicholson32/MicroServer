@@ -31,7 +31,9 @@ jobs:
           name: Start MicroServer
           command: sh -c "npm run start_test"
           background: true
-      - run: sleep 2
+      - run:
+          name: Delay 2s
+          command: sleep 2
       - run:
           name: Run Tests
           command: npm test
@@ -39,4 +41,6 @@ jobs:
           name: Run JSHint
           command: npm run jshint
       - store_test_results:
+          path: ./.log
+      - store_artifacts:
           path: ./.log
