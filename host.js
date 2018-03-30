@@ -699,7 +699,7 @@ function MicroServer(args) {
       // Check to see that there aren't too many clients connected
       if (client_count > system.max_clients) {
         // Report denial
-        consoleAnlog('Client Count Denial');
+        consoleAndlog('Client Count Denial');
         // Form response message
         let msg = {
           code: 0,
