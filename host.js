@@ -173,7 +173,7 @@ function MicroServer(args) {
       if (current_user === undefined || current_user === null || current_user === {} /*key != system.md5_key*/ ) {
         code = 4;
         msgOut = "Invalid handshake key.";
-        consoleAndlog(colors.red("Invalid Key: " + key + "\n"));
+        consoleAndLog(colors.red("Invalid Key: " + key + "\n"));
       } else {
         // Message is valid, and has the correct key. We can continue with the process.
         cmdID = request[0];
@@ -735,7 +735,7 @@ function MicroServer(args) {
       // Remove the client from the count on close
       ws.on('close', function close(e) {
         client_count--;
-        consoleAndlog("Closed Connection: " + colors.yellow("[" + (system.max_clients - client_count) + "] client slots available"));
+        consoleAndLog("Closed Connection: " + colors.yellow("[" + (system.max_clients - client_count) + "] client slots available"));
       });
       // Add error handle
       ws.on('error', function err(e) {
@@ -747,7 +747,7 @@ function MicroServer(args) {
       // Check to see that there aren't too many clients connected
       if (client_count > system.max_clients) {
         // Report denial
-        consoleAndlog('Client Count Denial');
+        consoleAndLog('Client Count Denial');
         // Form response message
         let msg = {
           code: 0,
