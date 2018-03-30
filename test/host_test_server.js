@@ -25,7 +25,9 @@ let ms = new MicroServer({
   max_clients: 1, // Max number of allowed clients
   directory: './files', // Storage location
   log: './.log', // Log location
-  ssl: false, // Use SSL to encrypt websocket
+  ssl: true, // Use SSL to encrypt websocket
+  cert: './test/keys/certs/server/my-server.crt.pem', // Path to SSL certificate
+  key_ssl: './test/keys/certs/server/my-server.key.pem', // Path to SSL key
   users: users
 });
 
