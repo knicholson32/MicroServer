@@ -40,6 +40,8 @@ function MicroServer(args) {
     cert: './certificate.pem', // Path to SSL certificate
     key_ssl: './key.pem', // Path to SSL key
     banner: true,
+    verbose: false,
+    console: console,
     users: [{
       name: 'root',
       pass: 'password',
@@ -123,7 +125,7 @@ function MicroServer(args) {
       if (current_user === undefined || current_user === null || current_user === {} /*key != system.md5_key*/ ) {
         code = 4;
         msgOut = "Invalid handshake key.";
-        consolelog(colors.red("Invalid Key: " + key + "\n"));
+        consoleAndlog(colors.red("Invalid Key: " + key + "\n"));
       } else {
         // Message is valid, and has the correct key. We can continue with the process.
         cmdID = request[0];
@@ -206,8 +208,8 @@ function MicroServer(args) {
                   code = 5;
                   msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. This is probably means a directory along the path does not exist.";
                   data = request[1];
-                  log('-> ' + message);
-                  log(e);
+                  logOnly('-> '.red + message);
+                  logOnly(color.red(e));
                 }
               }
             }
@@ -276,8 +278,8 @@ function MicroServer(args) {
                   code = 5;
                   msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. This is probably means a directory along the path does not exist.";
                   data = request[2];
-                  log('-> ' + message);
-                  log(e);
+                  logOnly('-> '.red + message);
+                  logOnly(color.red(e));
                 }
               }
             }
@@ -351,8 +353,8 @@ function MicroServer(args) {
                       }
                       code = 5;
                       data = request[2];
-                      log('-> ' + message);
-                      log(a);
+                      logOnly('-> '.red + message);
+                      logOnly(color.red(a));
                     }
                   } else {
                     // Create the folder
@@ -364,8 +366,8 @@ function MicroServer(args) {
                   code = 5;
                   msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while creating the directory.";
                   data = request[2];
-                  log('-> ' + message);
-                  log(e);
+                  logOnly('-> '.red + message);
+                  logOnly(color.red(e));
                 }
               }
             }
@@ -415,8 +417,8 @@ function MicroServer(args) {
                     msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while deleting the file.";
                     code = 5;
                     data = request[1];
-                    log('-> ' + message);
-                    log(a);
+                    logOnly('-> '.red + message);
+                    logOnly(color.red(a));
                   }
                 } else {
                   try {
@@ -488,8 +490,8 @@ function MicroServer(args) {
                     msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while moving the file. Ensure correct paths.";
                     code = 5;
                     data = request[1];
-                    log('-> ' + message);
-                    log(a);
+                    logOnly('-> '.red + message);
+                    logOnly(color.red(a));
                   }
                 }
               }
@@ -555,8 +557,8 @@ function MicroServer(args) {
                     msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while copying the file. Ensure correct paths.";
                     code = 5;
                     data = request[1];
-                    log('-> ' + message);
-                    log(a);
+                    logOnly('-> '.red + message);
+                    logOnly(color.red(a));
                   }
                 }
               }
@@ -604,8 +606,8 @@ function MicroServer(args) {
                 msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while hashing the file. Ensure correct paths.";
                 code = 5;
                 data = request[1];
-                log('-> ' + message);
-                log(a);
+                logOnly('-> '.red + message);
+                logOnly(color.red(a));
               }
             }
             break;
@@ -618,7 +620,7 @@ function MicroServer(args) {
     }
 
     // Log the message
-    log('-> \'' + (current_user.name === undefined ? "unknown" : current_user.name) + "\': " + message);
+    logOnly(colors.grey('-> ') + '\'' + colors.yellow((current_user.name === undefined ? "unknown" : current_user.name)) + "\': " + message);
 
     // Form the return message
     let return_msg = {
@@ -630,7 +632,7 @@ function MicroServer(args) {
     };
     // Send the return message
     ws.send(JSON.stringify(return_msg));
-    log("<- [" + code + "] (" + cmdID + ") to '" + (current_user.name === undefined ? "unknown" : current_user.name) + "' : '" + msgOut + "'");
+    logOnly("<- ".grey + colors.cyan("[" + code + "] (" + cmdID + ")") + " to " + colors.yellow((current_user.name === undefined ? "unknown" : current_user.name)) + "' : '" + msgOut + "'");
   };
 
   this.wss = undefined;
@@ -640,6 +642,7 @@ function MicroServer(args) {
   this.start = function() {
     // Create the websocket server and bind it to the configured port
     if (this.system.ssl === true) {
+      // Ref: http://www.chovy.com/web-development/self-signed-certs-with-secure-websockets-in-node-js/
       // Import https server
       const https = require('https');
       // Generate credentials for the ssl connection based on config
@@ -684,11 +687,11 @@ function MicroServer(args) {
       // Remove the client from the count on close
       ws.on('close', function close(e) {
         client_count--;
-        consolelog("Closed Connection: " + colors.yellow("[" + (system.max_clients - client_count) + "] client slots available"));
+        consoleAndlog("Closed Connection: " + colors.yellow("[" + (system.max_clients - client_count) + "] client slots available"));
       });
       // Add error handle
       ws.on('error', function err(e) {
-        log(e);
+        logOnly(e);
       });
       // Process what to do on open
       // Add to the client count
@@ -696,7 +699,7 @@ function MicroServer(args) {
       // Check to see that there aren't too many clients connected
       if (client_count > system.max_clients) {
         // Report denial
-        consolelog('Client Count Denial');
+        consoleAnlog('Client Count Denial');
         // Form response message
         let msg = {
           code: 0,
@@ -717,7 +720,7 @@ function MicroServer(args) {
         // Send the response message
         ws.send(JSON.stringify(msg));
         // Report connection
-        consolelog("Opened Connection: " + colors.yellow("[" + (system.max_clients - client_count) + "] client slots available"));
+        consoleAndLog("Opened Connection: " + colors.yellow("[" + (system.max_clients - client_count) + "] client slots available"));
       }
     });
 
@@ -741,7 +744,7 @@ function MicroServer(args) {
           client.send(JSON.stringify(return_msg));
         }
       });
-      log('Broadcast file/dir update: ' + data);
+      logOnly('Broadcast file/dir update: ' + data);
     };
 
     // Init log file
@@ -753,16 +756,19 @@ function MicroServer(args) {
       introBanner();
 
     // Report details
-    consolelog("Websocket active port: " + colors.grey(system.port));
+    consoleAndLog("Websocket active port: " + colors.grey(system.port));
     if (this.system.ssl === true) {
-      consolelog("SSL status: " + colors.green("Active"));
+      consoleAndLog("SSL status: " + colors.green("Active"));
     } else {
-      consolelog("SSL status: " + colors.red("Disabled"));
+      consoleAndLog("SSL status: " + colors.red("Disabled"));
     }
-    consolelog("Interface Hash: " + colors.grey("'" + system.md5_key + "'"));
-    consolelog("Client limit: " + colors.yellow("[" + system.max_clients + "] clients."));
-    consolelog("Type ctrl-C to exit.".cyan);
-    consolelog("Awaiting connections...".grey);
+    if (this.system.verbose === true) {
+      consoleAndLog("Verbose console: " + colors.green("Active"));
+    }
+    consoleAndLog("Interface Hash: " + colors.grey("'" + system.md5_key + "'"));
+    consoleAndLog("Client limit: " + colors.yellow("[" + system.max_clients + "] clients."));
+    consoleAndLog("Type ctrl-C to exit.".cyan);
+    consoleAndLog("Awaiting connections...".grey);
 
   };
 
@@ -805,10 +811,22 @@ function MicroServer(args) {
   }
 
   // Override logging to print to console and log file
-  var old_c = console.log;
-  var consolelog = function(e) {
+  var old_c = system.console.log;
+
+  var consoleAndLog = function(e) {
     log(strip(e));
     old_c("> ".white + e);
+  };
+
+  var consoleOnly = function(e) {
+    old_c("> ".white + e);
+  };
+
+  var logOnly = function(e) {
+    log(strip(e));
+    if (system.verbose === true) {
+      old_c(": ".red + e);
+    }
   };
 
   function introBanner() {
