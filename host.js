@@ -78,6 +78,54 @@ function MicroServer(args) {
   var wss;
   var current_user = {};
 
+  // Override logging to print to console and log file
+  var old_c = system.console.log;
+
+  var consoleAndLog = function(e) {
+    log(strip(e));
+    old_c("> ".white + e);
+  };
+
+  var consoleOnly = function(e) {
+    old_c("> ".white + e);
+  };
+
+  var logOnly = function(e) {
+    log(strip(e));
+    if (system.verbose === true) {
+      old_c(": ".red + e);
+    }
+  };
+
+  function introBanner() {
+    old_c(" __  __ _               ____                           ".grey);
+    old_c("|  \\/  (_) ___ _ __ ___/ ___|  ___ _ ____   _____ _ __ ".grey);
+    old_c("| |\\/| | |/ __| '__/ _ \\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|".grey);
+    old_c("| |  | | | (__| | | (_) |__) |  __/ |   \\ V /  __/ |   ".grey);
+    old_c("|_|  |_|_|\\___|_|  \\___/____/ \\___|_|    \\_/ \\___|_|   \n".grey);
+    old_c("------------------------------------------------------\n".grey);
+  }
+
+  // Log file print
+  log = function(e, date = true) {
+    if (date === false) {
+      try {
+        fs.appendFileSync(system.log, '' + e + '\n');
+      } catch (exc) {
+        old_c(exc);
+      }
+    } else {
+      let d = new Date();
+      dateString = d.toTimeString().split(' ')[0];
+      try {
+        fs.appendFileSync(system.log, dateString + '  ' + e + '\n');
+      } catch (exc) {
+        old_c(exc);
+      }
+    }
+  };
+  var log = log;
+
   // Process a message from the client
   var process = function(ws, message) {
     // Decode incoming message
@@ -809,54 +857,6 @@ function MicroServer(args) {
   function cleanHeadDir(input_path) {
     return path.relative(headDir, input_path);
   }
-
-  // Override logging to print to console and log file
-  var old_c = system.console.log;
-
-  var consoleAndLog = function(e) {
-    log(strip(e));
-    old_c("> ".white + e);
-  };
-
-  var consoleOnly = function(e) {
-    old_c("> ".white + e);
-  };
-
-  var logOnly = function(e) {
-    log(strip(e));
-    if (system.verbose === true) {
-      old_c(": ".red + e);
-    }
-  };
-
-  function introBanner() {
-    old_c(" __  __ _               ____                           ".grey);
-    old_c("|  \\/  (_) ___ _ __ ___/ ___|  ___ _ ____   _____ _ __ ".grey);
-    old_c("| |\\/| | |/ __| '__/ _ \\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|".grey);
-    old_c("| |  | | | (__| | | (_) |__) |  __/ |   \\ V /  __/ |   ".grey);
-    old_c("|_|  |_|_|\\___|_|  \\___/____/ \\___|_|    \\_/ \\___|_|   \n".grey);
-    old_c("------------------------------------------------------\n".grey);
-  }
-
-  // Log file print
-  log = function(e, date = true) {
-    if (date === false) {
-      try {
-        fs.appendFileSync(system.log, '' + e + '\n');
-      } catch (exc) {
-        old_c(exc);
-      }
-    } else {
-      let d = new Date();
-      dateString = d.toTimeString().split(' ')[0];
-      try {
-        fs.appendFileSync(system.log, dateString + '  ' + e + '\n');
-      } catch (exc) {
-        old_c(exc);
-      }
-    }
-  };
-  var log = log;
 }
 
 
