@@ -18,6 +18,9 @@ const WebSocket = require('ws');
 // Import file system packages
 var fs = require('file-system');
 const path = require('path');
+// Import console colors
+var colors = require('colors');
+var strip = require('strip-color');
 // Import MD5 Hash
 var md5 = require('md5');
 
@@ -36,6 +39,7 @@ function MicroServer(args) {
     ssl: false, // Use SSL to encrypt websocket
     cert: './certificate.pem', // Path to SSL certificate
     key_ssl: './key.pem', // Path to SSL key
+    banner: true,
     users: [{
       name: 'root',
       pass: 'password',
@@ -69,6 +73,7 @@ function MicroServer(args) {
   };
 
   var system = this.system;
+  var wss;
   var current_user = {};
 
   // Process a message from the client
@@ -118,7 +123,7 @@ function MicroServer(args) {
       if (current_user === undefined || current_user === null || current_user === {} /*key != system.md5_key*/ ) {
         code = 4;
         msgOut = "Invalid handshake key.";
-        console.log("Invalid Key: " + key + "\n");
+        consolelog(colors.red("Invalid Key: " + key + "\n"));
       } else {
         // Message is valid, and has the correct key. We can continue with the process.
         cmdID = request[0];
@@ -630,17 +635,25 @@ function MicroServer(args) {
 
   this.wss = undefined;
   var client_count = 0;
+  var server;
+  var ssl_ws;
   this.start = function() {
     // Create the websocket server and bind it to the configured port
     if (this.system.ssl === true) {
+      // Import https server
       const https = require('https');
-      const server = https.createServer({
-        port: this.system.port,
-        cert: this.system.cert,
-        key: this.system.key_ssl
-      });
+      // Generate credentials for the ssl connection based on config
+      var credentials = {
+        key: fs.readFileSync(this.system.key_ssl),
+        cert: fs.readFileSync(this.system.cert)
+      };
+      // Create the https server
+      var httpsServer = https.createServer(credentials);
+      // Listen on the specified port
+      httpsServer.listen(this.system.port);
+      // Create the WebSocket server and attach it to the https server
       wss = new WebSocket.Server({
-        server
+        server: httpsServer
       });
     } else {
       wss = new WebSocket.Server({
@@ -671,7 +684,7 @@ function MicroServer(args) {
       // Remove the client from the count on close
       ws.on('close', function close(e) {
         client_count--;
-        console.log("Closed Connection: [" + (system.max_clients - client_count) + "] client slots available");
+        consolelog("Closed Connection: " + colors.yellow("[" + (system.max_clients - client_count) + "] client slots available"));
       });
       // Add error handle
       ws.on('error', function err(e) {
@@ -683,7 +696,7 @@ function MicroServer(args) {
       // Check to see that there aren't too many clients connected
       if (client_count > system.max_clients) {
         // Report denial
-        console.log('Client Count Denial');
+        consolelog('Client Count Denial');
         // Form response message
         let msg = {
           code: 0,
@@ -704,7 +717,7 @@ function MicroServer(args) {
         // Send the response message
         ws.send(JSON.stringify(msg));
         // Report connection
-        console.log("Opened Connection: [" + (system.max_clients - client_count) + "] client slots available");
+        consolelog("Opened Connection: " + colors.yellow("[" + (system.max_clients - client_count) + "] client slots available"));
       }
     });
 
@@ -736,13 +749,20 @@ function MicroServer(args) {
     log(Date(), false);
     log('==============================================\n', false);
 
+    if (this.system.banner === true)
+      introBanner();
 
     // Report details
-    console.log("Websocket active on port: " + system.port);
-    console.log("Interface Hash: '" + system.md5_key + "'");
-    console.log("Allowing a max of [" + system.max_clients + "] clients.");
-    console.log("Type ctrl-C to exit.");
-    console.log("Awaiting connections...");
+    consolelog("Websocket active port: " + colors.grey(system.port));
+    if (this.system.ssl === true) {
+      consolelog("SSL status: " + colors.green("Active"));
+    } else {
+      consolelog("SSL status: " + colors.red("Disabled"));
+    }
+    consolelog("Interface Hash: " + colors.grey("'" + system.md5_key + "'"));
+    consolelog("Client limit: " + colors.yellow("[" + system.max_clients + "] clients."));
+    consolelog("Type ctrl-C to exit.".cyan);
+    consolelog("Awaiting connections...".grey);
 
   };
 
@@ -786,10 +806,19 @@ function MicroServer(args) {
 
   // Override logging to print to console and log file
   var old_c = console.log;
-  console.log = function(e) {
-    log(e);
-    old_c(e);
+  var consolelog = function(e) {
+    log(strip(e));
+    old_c("> ".white + e);
   };
+
+  function introBanner() {
+    old_c(" __  __ _               ____                           ".grey);
+    old_c("|  \\/  (_) ___ _ __ ___/ ___|  ___ _ ____   _____ _ __ ".grey);
+    old_c("| |\\/| | |/ __| '__/ _ \\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|".grey);
+    old_c("| |  | | | (__| | | (_) |__) |  __/ |   \\ V /  __/ |   ".grey);
+    old_c("|_|  |_|_|\\___|_|  \\___/____/ \\___|_|    \\_/ \\___|_|   \n".grey);
+    old_c("------------------------------------------------------\n".grey)
+  }
 
   // Log file print
   log = function(e, date = true) {
