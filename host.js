@@ -42,6 +42,7 @@ function MicroServer(args) {
     banner: true,
     verbose: false,
     console: console,
+    headless: false,
     users: [{
       name: 'root',
       pass: 'password',
@@ -83,21 +84,25 @@ function MicroServer(args) {
 
   var consoleAndLog = function(e) {
     log(strip(e));
-    old_c("> ".white + e);
+    if (system.headless === false)
+      old_c("> ".white + e);
   };
 
   var consoleOnly = function(e) {
-    old_c("> ".white + e);
+    if (system.headless === false)
+      old_c("> ".white + e);
   };
 
   var logOnly = function(e) {
     log(strip(e));
-    if (system.verbose === true) {
+    if (system.headless === false && system.verbose === true) {
       old_c(": ".red + e);
     }
   };
 
   function introBanner() {
+    if (system.headless === true)
+      return;
     old_c(" __  __ _               ____                           ".grey);
     old_c("|  \\/  (_) ___ _ __ ___/ ___|  ___ _ ____   _____ _ __ ".grey);
     old_c("| |\\/| | |/ __| '__/ _ \\___ \\ / _ \\ '__\\ \\ / / _ \\ '__|".grey);
@@ -711,6 +716,17 @@ function MicroServer(args) {
         port: this.system.port
       });
     }
+
+    wss.on('error', function(e) {
+      switch (e.code) {
+        case 'EADDRINUSE':
+          consoleAndLog(colors.red('error: ') + colors.yellow('Port/address is already in use: ') + colors.grey(system.port) + ' : ' + e.code + ' : ' + e.message);
+          break;
+        default:
+          consoleAndLog(colors.red('error: ') + colors.yellow('Websocket Error: ') + e.code + ' : ' + e.message);
+          break;
+      }
+    });
 
     /* Codes:
      * 0: Refused connection
