@@ -262,7 +262,7 @@ function MicroServer(args) {
                   msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. This is probably means a directory along the path does not exist.";
                   data = request[1];
                   logOnly('-> '.red + message);
-                  logOnly(color.red(e));
+                  logOnly(colors.red(e));
                 }
               }
             }
@@ -332,7 +332,7 @@ function MicroServer(args) {
                   msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. This is probably means a directory along the path does not exist.";
                   data = request[2];
                   logOnly('-> '.red + message);
-                  logOnly(color.red(e));
+                  logOnly(colors.red(e));
                 }
               }
             }
@@ -407,7 +407,7 @@ function MicroServer(args) {
                       code = 5;
                       data = request[2];
                       logOnly('-> '.red + message);
-                      logOnly(color.red(a));
+                      logOnly(colors.red(a));
                     }
                   } else {
                     // Create the folder
@@ -420,7 +420,7 @@ function MicroServer(args) {
                   msgOut = "Invalid file access. Server was unable to preform a '" + cmdID + "'. An error occured while creating the directory.";
                   data = request[2];
                   logOnly('-> '.red + message);
-                  logOnly(color.red(e));
+                  logOnly(colors.red(e));
                 }
               }
             }
@@ -471,7 +471,7 @@ function MicroServer(args) {
                     code = 5;
                     data = request[1];
                     logOnly('-> '.red + message);
-                    logOnly(color.red(a));
+                    logOnly(colors.red(a));
                   }
                 } else {
                   try {
@@ -544,7 +544,7 @@ function MicroServer(args) {
                     code = 5;
                     data = request[1];
                     logOnly('-> '.red + message);
-                    logOnly(color.red(a));
+                    logOnly(colors.red(a));
                   }
                 }
               }
@@ -611,7 +611,7 @@ function MicroServer(args) {
                     code = 5;
                     data = request[1];
                     logOnly('-> '.red + message);
-                    logOnly(color.red(a));
+                    logOnly(colors.red(a));
                   }
                 }
               }
@@ -660,7 +660,7 @@ function MicroServer(args) {
                 code = 5;
                 data = request[1];
                 logOnly('-> '.red + message);
-                logOnly(color.red(a));
+                logOnly(colors.red(a));
               }
             }
             break;
@@ -726,6 +726,10 @@ function MicroServer(args) {
           consoleAndLog(colors.red('error: ') + colors.yellow('Websocket Error: ') + e.code + ' : ' + e.message);
           break;
       }
+    });
+
+    wss.on('open', function() {
+      consoleAndLog("Awaiting connections...".grey);
     });
 
     /* Codes:
@@ -832,7 +836,6 @@ function MicroServer(args) {
     consoleAndLog("Interface Hash: " + colors.grey("'" + system.md5_key + "'"));
     consoleAndLog("Client limit: " + colors.yellow("[" + system.max_clients + "] clients."));
     consoleAndLog("Type ctrl-C to exit.".cyan);
-    consoleAndLog("Awaiting connections...".grey);
 
   };
 
@@ -843,6 +846,8 @@ function MicroServer(args) {
       this.client_count = 0;
     } catch (e) {}
   };
+
+  this.close = this.stop;
 
   function getID() {
     return Math.random().toString(36).substr(2, 9);
