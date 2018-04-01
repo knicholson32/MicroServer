@@ -12,7 +12,9 @@ var md5 = require('md5');
 let ip_addr = (require('ip').address());
 console.log("Connecting: " + ip_addr + ":" + 8081);
 
-var ws_local = new WebSocket('ws://' + (require('ip').address()) + ':' + 8081);
+var ws_local = new WebSocket('wss://' + (require('ip').address()) + ':' + 8081, {
+  rejectUnauthorized: false
+});
 var direct;
 ws_local.on('message', function incoming(data) {
   direct(data);
@@ -47,7 +49,9 @@ describe('Testing with \'user1\'', () => {
   // Test client denial
   test('Check Client Denial', done => {
     let received_denial_message = false;
-    const ws_local_den = new WebSocket('ws://' + (require('ip').address()) + ':' + 8081);
+    const ws_local_den = new WebSocket('wss://' + (require('ip').address()) + ':' + 8081, {
+      rejectUnauthorized: false
+    });
     ws_local_den.on('close', function open() {
       if (received_denial_message === true) {
         done();
@@ -748,7 +752,9 @@ describe('Testing with \'user2\'', () => {
     setTimeout(function() {
       username = 'user2';
       password = 'pass2';
-      ws_local = new WebSocket('ws://' + (require('ip').address()) + ':' + 8081);
+      ws_local = new WebSocket('wss://' + (require('ip').address()) + ':' + 8081, {
+        rejectUnauthorized: false
+      });
       direct = null;
       ws_local.on('message', function incoming(data) {
         direct(data);
