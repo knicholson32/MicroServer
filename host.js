@@ -730,7 +730,7 @@ function MicroServer(args) {
 
     wss.on('open', function() {
       consoleAndLog("Awaiting connections...".grey);
-    })
+    });
 
     /* Codes:
      * 0: Refused connection
