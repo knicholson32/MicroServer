@@ -1,5 +1,5 @@
 # MicroServer
-[![Release](https://img.shields.io/github/release/knicholson/MicroServer.svg)](https://github.com/knicholson32/MicroServer)
+[![Release](https://img.shields.io/github/release/knicholson32/MicroServer.svg)](https://github.com/knicholson32/MicroServer)
 [![CircleCI branch](https://img.shields.io/circleci/project/github/knicholson32/MicroServer/master.svg)](https://circleci.com/gh/knicholson32/MicroServer)
 [![BSD3 License](http://img.shields.io/badge/license-MIT-brightgreen.svg?longCache=true&style=flat)](https://tldrlegal.com/license/mit-license)
 
